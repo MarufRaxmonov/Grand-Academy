@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Talaba yutuqlari</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      color: #202124;
+      background: #f6f7f9;
+      font-family: Arial, sans-serif;
+    }
+    main { width: min(100%, 480px); margin: 0 auto; }
+    h1 { margin: 0 0 22px; font-size: 23px; }
+    form, .saved-item {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    form { margin-bottom: 12px; }
+    label { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+    input[type="file"], input[type="url"] {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      border: 1px solid #d6d9df;
+      border-radius: 8px;
+      background: #fff;
+      color: #202124;
+      font: inherit;
+    }
+    input[type="file"] { padding: 8px; }
+    .upload-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: #2878e5;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .upload-button:disabled { opacity: .6; cursor: wait; }
+    .saved-list { display: grid; gap: 10px; margin: -2px 0 16px; }
+    .saved-item { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: center; }
+    .saved-item img { width: 76px; height: 76px; border-radius: 7px; object-fit: cover; }
+    .saved-item a { overflow-wrap: anywhere; color: #1769d2; font-size: 14px; }
+    .remove-button {
+      display: block;
+      width: auto;
+      min-height: 0;
+      margin-top: 9px;
+      padding: 0;
+      border: 0;
+      color: #777;
+      background: none;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    @media (max-width: 360px) {
+      body { padding: 18px 12px; }
+      form, .saved-item { padding: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Talaba yutuqlari</h1>
+
+    <form id="photo-form">
+      <label for="photo">Yutuq rasmi</label>
+      <input id="photo" type="file" accept="image/*" required>
+      <button class="upload-button" type="submit">Rasmni yuklash</button>
+    </form>
+    <section class="saved-list" id="photo-list" aria-label="Saqlangan rasmlar"></section>
+
+    <form id="video-form">
+      <label for="instagram">Instagram video havolasi</label>
+      <input id="instagram" type="url" placeholder="https://www.instagram.com/..." required>
+      <button class="upload-button" type="submit">Havolani yuklash</button>
+    </form>
+    <section class="saved-list" id="video-list" aria-label="Saqlangan havolalar"></section>
+  </main>
+
+  <script>
+    (() => {
+      const databaseName = "talaba-yutuqlari";
+      const photoStore = "rasmlar";
+      const videoStore = "video-havolalar";
+      const photoForm = document.getElementById("photo-form");
+      const videoForm = document.getElementById("video-form");
+      const photoInput = document.getElementById("photo");
+      const instagramInput = document.getElementById("instagram");
+      const photoList = document.getElementById("photo-list");
+      const videoList = document.getElementById("video-list");
+      let database;
+      let imageUrls = [];
+
+      function openDatabase() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(databaseName, 2);
+          request.onupgradeneeded = (event) => {
+            const db = request.result;
+            const transaction = request.transaction;
+            if (!db.objectStoreNames.contains(photoStore)) {
+              db.createObjectStore(photoStore, { keyPath: "id" });
+            }
+            if (!db.objectStoreNames.contains(videoStore)) {
+              db.createObjectStore(videoStore, { keyPath: "id" });
+            }
+
+            // Old saved entries are split into independent photo and link records.
+            if (event.oldVersion === 1 && db.objectStoreNames.contains("yutuqlar")) {
+              const oldEntries = transaction.objectStore("yutuqlar").openCursor();
+              oldEntries.onsuccess = () => {
+                const cursor = oldEntries.result;
+                if (!cursor) return;
+                const item = cursor.value;
+                const createdAt = item.createdAt || Date.now();
+                if (item.photo) {
+                  transaction.objectStore(photoStore).put({
+                    id: "old-photo-" + item.id,
+                    photo: item.photo,
+                    createdAt
+                  });
+                }
+                if (item.instagram) {
+                  transaction.objectStore(videoStore).put({
+                    id: "old-video-" + item.id,
+                    instagram: item.instagram,
+                    createdAt
+                  });
+                }
+                cursor.continue();
+              };
+            }
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function createId() {
+        return typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+      }
+
+      function saveItem(storeName, item) {
+        return new Promise((resolve, reject) => {
+          const transaction = database.transaction(storeName, "readwrite");
+          transaction.objectStore(storeName).put(item);
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+      }
+
+      function getItems(storeName) {
+        return new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readonly")
+            .objectStore(storeName).getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function deleteItem(storeName, id) {
+        return new Promise((resolve, reject) => {
+          const transaction = database.transaction(storeName, "readwrite");
+          transaction.objectStore(storeName).delete(id);
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+      }
+
+      function addRemoveButton(storeName, item, parent) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "remove-button";
+        button.textContent = "O‘chirish";
+        button.addEventListener("click", async () => {
+          await deleteItem(storeName, item.id);
+          await renderItems();
+        });
+        parent.append(button);
+      }
+
+      async function renderItems() {
+        imageUrls.forEach(URL.revokeObjectURL);
+        imageUrls = [];
+        photoList.replaceChildren();
+        videoList.replaceChildren();
+
+        const [photos, videos] = await Promise.all([
+          getItems(photoStore),
+          getItems(videoStore)
+        ]);
+
+        photos.sort((a, b) => b.createdAt - a.createdAt);
+        videos.sort((a, b) => b.createdAt - a.createdAt);
+
+        for (const item of photos) {
+          const card = document.createElement("article");
+          card.className = "saved-item";
+          const image = document.createElement("img");
+          image.alt = "Yutuq rasmi";
+          const imageUrl = URL.createObjectURL(item.photo);
+          imageUrls.push(imageUrl);
+          image.src = imageUrl;
+          const details = document.createElement("div");
+          addRemoveButton(photoStore, item, details);
+          card.append(image, details);
+          photoList.append(card);
+        }
+
+        for (const item of videos) {
+          const card = document.createElement("article");
+          card.className = "saved-item";
+          const details = document.createElement("div");
+          details.style.gridColumn = "1 / -1";
+          const link = document.createElement("a");
+          link.href = item.instagram;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Instagram videosi";
+          details.append(link);
+          addRemoveButton(videoStore, item, details);
+          card.append(details);
+          videoList.append(card);
+        }
+      }
+
+      photoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!photoForm.reportValidity()) return;
+        const photo = photoInput.files[0];
+        if (!photo || !photo.type.startsWith("image/")) return;
+
+        const button = photoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(photoStore, {
+            id: createId(),
+            photo,
+            createdAt: Date.now()
+          });
+          photoForm.reset();
+          await renderItems();
+        } catch {
+          window.alert("Rasmni saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      videoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!videoForm.reportValidity()) return;
+
+        let instagram;
+        try {
+          instagram = new URL(instagramInput.value.trim());
+        } catch {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+        instagramInput.setCustomValidity("");
+        if (instagram.protocol !== "https:" ||
+            !(instagram.hostname === "instagram.com" || instagram.hostname.endsWith(".instagram.com"))) {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+
+        const button = videoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(videoStore, {
+            id: createId(),
+            instagram: instagram.href,
+            createdAt: Date.now()
+          });
+          videoForm.reset();
+          await renderItems();
+        } catch {
+          window.alert("Havolani saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      instagramInput.addEventListener("input", () => instagramInput.setCustomValidity(""));
+
+      openDatabase()
+        .then((db) => {
+          database = db;
+          return renderItems();
+        })
+        .catch(() => window.alert("Qurilmada saqlab bo‘lmadi"));
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+    })();
+  </script>
+</body>
+</html>
