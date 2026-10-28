@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Talaba yutuqlari</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      color: #202124;
+      background: #f6f7f9;
+      font-family: Arial, sans-serif;
+    }
+    main { width: min(100%, 480px); margin: 0 auto; }
+    h1 { margin: 0 0 22px; font-size: 23px; }
+    form, .saved-item {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    form { margin-bottom: 12px; }
+    label { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+    input[type="file"], input[type="url"], input[type="text"],
+    input[type="tel"], input[type="password"] {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      border: 1px solid #d6d9df;
+      border-radius: 8px;
+      background: #fff;
+      color: #202124;
+      font: inherit;
+    }
+    input[type="file"] { padding: 8px; }
+    .registration-section { margin-bottom: 12px; }
+    .registration-section label { margin-top: 14px; }
+    .upload-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: #2878e5;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .upload-button:disabled { opacity: .6; cursor: wait; }
+    .upload-status {
+      margin: -2px 0 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #626a73;
+      background: #eef0f3;
+      font-size: 14px;
+    }
+    .upload-status.is-uploaded { color: #167044; background: #e8f6ee; }
+    #app-view { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .profile-card {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .profile-card h2 { margin: 0 0 14px; font-size: 18px; }
+    .profile-details { margin: 0; }
+    .profile-details > div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-top: 1px solid #eef0f3;
+    }
+    .profile-details dt { color: #626a73; }
+    .profile-details dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .profile-media-section { margin-top: 20px; }
+    .profile-media-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .profile-media-heading h2 { margin: 0; font-size: 18px; }
+    .profile-media-count {
+      min-width: 28px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #1769d2;
+      background: #eaf2ff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .profile-photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .profile-photo-card, .profile-video-card {
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .profile-photo-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #eef0f3;
+    }
+    .profile-photo-meta { display: grid; gap: 4px; padding: 10px; }
+    .profile-photo-meta strong { font-size: 13px; }
+    .profile-media-date { color: #737b84; font-size: 12px; }
+    .profile-video-list { display: grid; gap: 10px; }
+    .profile-video-card { display: grid; gap: 10px; padding: 12px; }
+    .profile-video-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .profile-video-icon {
+      display: grid;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: #2878e5;
+      font-size: 16px;
+    }
+    .profile-video-info { display: grid; min-width: 0; gap: 4px; }
+    .profile-video-info a { color: #1769d2; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .profile-media-actions { display: flex; gap: 8px; padding: 0 10px 10px; }
+    .profile-video-card .profile-media-actions { padding: 0; }
+    .profile-action-button {
+      flex: 1;
+      min-height: 38px;
+      padding: 7px 9px;
+      border: 1px solid #d6d9df;
+      border-radius: 7px;
+      color: #1769d2;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .profile-action-button:disabled { opacity: .6; cursor: wait; }
+    .profile-action-button.delete { color: #b42318; border-color: #f1c6c3; }
+    .profile-edit-form {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8f9fb;
+    }
+    .profile-edit-form input[type="url"] { min-height: 40px; }
+    .profile-edit-buttons { display: flex; gap: 8px; }
+    .profile-empty {
+      margin: 0;
+      padding: 14px;
+      border: 1px dashed #d6d9df;
+      border-radius: 10px;
+      color: #737b84;
+      background: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    .bottom-nav {
+      position: fixed;
+      z-index: 10;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 8px max(16px, calc((100% - 480px) / 2 + 16px)) calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .bottom-nav button {
+      min-height: 48px;
+      border: 0;
+      border-radius: 8px;
+      color: #626a73;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .bottom-nav button[aria-current="page"] { color: #1769d2; background: #eaf2ff; }
+    .remove-button {
+      display: block;
+      width: auto;
+      min-height: 0;
+      margin-top: 9px;
+      padding: 0;
+      border: 0;
+      color: #777;
+      background: none;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    @media (max-width: 360px) {
+      body { padding: 18px 12px; }
+      form, .saved-item { padding: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="page-title">Ro‘yxatdan o‘tish</h1>
+
+    <section class="registration-section" id="registration-view" hidden>
+      <form id="registration-form">
+        <label for="first-name">Ism</label>
+        <input id="first-name" name="firstName" type="text" autocomplete="given-name" maxlength="80" required>
+
+        <label for="last-name">Familiya</label>
+        <input id="last-name" name="lastName" type="text" autocomplete="family-name" maxlength="80" required>
+
+        <label for="student-group">Guruhi</label>
+        <input id="student-group" name="group" type="text" maxlength="80" required>
+
+        <label for="phone">Telefon raqami</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="24" placeholder="+998 90 123 45 67" required>
+
+        <label for="access-code">Maxfiy kod</label>
+        <input id="access-code" name="accessCode" type="password" autocomplete="new-password" maxlength="100" required>
+
+        <button class="upload-button" type="submit">Ro‘yxatdan o‘tish</button>
+      </form>
+    </section>
+
+    <div id="app-view" hidden>
+      <section id="home-view">
+        <form id="photo-form">
+          <label for="photo">Yutuq rasmi</label>
+          <input id="photo" type="file" accept="image/*" required>
+          <button class="upload-button" type="submit">Rasmni yuklash</button>
+        </form>
+        <p class="upload-status" id="photo-upload-status" role="status" aria-live="polite">Hali rasm yuklanmagan</p>
+
+        <form id="video-form">
+          <label for="instagram">Instagram video havolasi</label>
+          <input id="instagram" type="url" placeholder="https://www.instagram.com/..." required>
+          <button class="upload-button" type="submit">Havolani yuklash</button>
+        </form>
+        <p class="upload-status" id="video-upload-status" role="status" aria-live="polite">Hali havola yuklanmagan</p>
+      </section>
+
+      <section id="profile-view" hidden>
+        <div class="profile-card">
+          <h2>Ro‘yxatdan o‘tgan ma’lumotlar</h2>
+          <dl class="profile-details">
+            <div><dt>Ism</dt><dd id="profile-first-name">—</dd></div>
+            <div><dt>Familiya</dt><dd id="profile-last-name">—</dd></div>
+            <div><dt>Guruhi</dt><dd id="profile-group">—</dd></div>
+            <div><dt>Telefon raqami</dt><dd id="profile-phone">—</dd></div>
+          </dl>
+        </div>
+        <section class="profile-media-section" aria-labelledby="profile-photos-title">
+          <div class="profile-media-heading">
+            <h2 id="profile-photos-title">Yutuq rasmlari</h2>
+            <span class="profile-media-count" id="profile-photo-count">0</span>
+          </div>
+          <div class="profile-photo-grid" id="profile-photo-grid"></div>
+          <p class="profile-empty" id="profile-photo-empty" hidden>Hozircha yutuq rasmi yuklanmagan</p>
+        </section>
+        <section class="profile-media-section" aria-labelledby="profile-videos-title">
+          <div class="profile-media-heading">
+            <h2 id="profile-videos-title">Instagram videolari</h2>
+            <span class="profile-media-count" id="profile-video-count">0</span>
+          </div>
+          <div class="profile-video-list" id="profile-video-list"></div>
+          <p class="profile-empty" id="profile-video-empty" hidden>Hozircha Instagram videosi yuklanmagan</p>
+        </section>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Pastki navigatsiya">
+        <button id="home-tab" type="button" aria-current="page">Asosiy</button>
+        <button id="profile-tab" type="button">Profil</button>
+      </nav>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    (() => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyASXLNGJaWRbmL2VUeTTub3qxQqfttQcR",
+        authDomain: "grand-academy-a7286.firebaseapp.com",
+        databaseURL: "https://grand-academy-a7286-default-rtdb.firebaseio.com/",
+        projectId: "grand-academy-a7286",
+        storageBucket: "grand-academy-a7286.firebasestorage.app",
+        messagingSenderId: "403319946045",
+        appId: "1:403319946045:web:e29dde92968c6a88fda354",
+        measurementId: "G-B6F4RDYMN9"
+      };
+      const photoStore = "rasmlar";
+      const videoStore = "video-havolalar";
+      const photoForm = document.getElementById("photo-form");
+      const videoForm = document.getElementById("video-form");
+      const registrationView = document.getElementById("registration-view");
+      const registrationForm = document.getElementById("registration-form");
+      const appView = document.getElementById("app-view");
+      const pageTitle = document.getElementById("page-title");
+      const homeView = document.getElementById("home-view");
+      const profileView = document.getElementById("profile-view");
+      const homeTab = document.getElementById("home-tab");
+      const profileTab = document.getElementById("profile-tab");
+      const photoInput = document.getElementById("photo");
+      const instagramInput = document.getElementById("instagram");
+      const accessCodeInput = document.getElementById("access-code");
+      const photoUploadStatus = document.getElementById("photo-upload-status");
+      const videoUploadStatus = document.getElementById("video-upload-status");
+      const profilePhotoGrid = document.getElementById("profile-photo-grid");
+      const profileVideoList = document.getElementById("profile-video-list");
+      const profilePhotoCount = document.getElementById("profile-photo-count");
+      const profileVideoCount = document.getElementById("profile-video-count");
+      const profilePhotoEmpty = document.getElementById("profile-photo-empty");
+      const profileVideoEmpty = document.getElementById("profile-video-empty");
+      const accessCodeHash = "54edc9e939e3f0a0c6b55309b572522f0ea88efd18fd03277580e3a5d22fa492";
+      let activeSection = "home";
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+
+      if (firebaseConfig.apiKey === "YOUR_FIREBASE_API_KEY") {
+        window.alert("Firebase apiKey qiymatini firebaseConfig ichiga kiriting");
+        return;
+      }
+
+      const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (!telegramUserId) {
+        window.alert("Ilovani Telegram orqali oching");
+        return;
+      }
+
+      const database = getDatabase(initializeApp(firebaseConfig));
+      const userPath = `users/${telegramUserId}`;
+      let userData = {};
+
+      function createId() {
+        return typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function saveItem(storeName, item) {
+        return set(ref(database, `${userPath}/${storeName}/${item.id}`), item);
+      }
+
+      function deleteItem(storeName, id) {
+        return remove(ref(database, `${userPath}/${storeName}/${id}`));
+      }
+
+      function showSection(section) {
+        activeSection = section;
+        const isHome = section === "home";
+        homeView.hidden = !isHome;
+        profileView.hidden = isHome;
+        pageTitle.textContent = isHome ? "Talaba yutuqlari" : "Profil";
+        if (isHome) {
+          homeTab.setAttribute("aria-current", "page");
+          profileTab.removeAttribute("aria-current");
+        } else {
+          profileTab.setAttribute("aria-current", "page");
+          homeTab.removeAttribute("aria-current");
+        }
+      }
+
+      function renderProfile() {
+        const profile = userData.profile || {};
+        document.getElementById("profile-first-name").textContent = profile.firstName || "—";
+        document.getElementById("profile-last-name").textContent = profile.lastName || "—";
+        document.getElementById("profile-group").textContent = profile.group || "—";
+        document.getElementById("profile-phone").textContent = profile.phone || "—";
+      }
+
+      function renderUploadStatuses() {
+        const photos = Object.values(userData[photoStore] || {}).filter((item) => item && item.photo);
+        const videos = Object.values(userData[videoStore] || {}).filter((item) => item && item.instagram);
+        photoUploadStatus.textContent = photos.length
+          ? `Yuklangan (${photos.length} ta)`
+          : "Hali rasm yuklanmagan";
+        videoUploadStatus.textContent = videos.length
+          ? `Yuklangan (${videos.length} ta)`
+          : "Hali havola yuklanmagan";
+        photoUploadStatus.classList.toggle("is-uploaded", photos.length > 0);
+        videoUploadStatus.classList.toggle("is-uploaded", videos.length > 0);
+      }
+
+      function formatUploadDate(timestamp) {
+        if (!timestamp || !Number.isFinite(Number(timestamp))) return "";
+        return new Intl.DateTimeFormat("uz-UZ", {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }).format(new Date(Number(timestamp)));
+      }
+
+      function createProfileActionButton(label, className = "") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `profile-action-button${className ? ` ${className}` : ""}`;
+        button.textContent = label;
+        return button;
+      }
+
+      function createDeleteButton(storeName, item, confirmationText) {
+        const button = createProfileActionButton("O‘chirish", "delete");
+        button.addEventListener("click", async () => {
+          if (!window.confirm(confirmationText)) return;
+          button.disabled = true;
+          try {
+            await deleteItem(storeName, item.id);
+          } catch {
+            window.alert("Ma’lumotni o‘chirib bo‘lmadi");
+            button.disabled = false;
+          }
+        });
+        return button;
+      }
+
+      function getInstagramUrl(value) {
+        try {
+          const url = new URL(value.trim());
+          if (url.protocol === "https:" &&
+              (url.hostname === "instagram.com" || url.hostname.endsWith(".instagram.com"))) {
+            return url.href;
+          }
+        } catch {
+          return null;
+        }
+        return null;
+      }
+
+      function renderProfileMedia() {
+        profilePhotoGrid.replaceChildren();
+        profileVideoList.replaceChildren();
+
+        const photos = Object.values(userData[photoStore] || {})
+          .filter((item) => item && item.photo)
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const videos = Object.values(userData[videoStore] || {})
+          .filter((item) => item && item.instagram)
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        profilePhotoCount.textContent = String(photos.length);
+        profileVideoCount.textContent = String(videos.length);
+        profilePhotoEmpty.hidden = photos.length > 0;
+        profileVideoEmpty.hidden = videos.length > 0;
+
+        photos.forEach((item, index) => {
+          const card = document.createElement("article");
+          card.className = "profile-photo-card";
+          const image = document.createElement("img");
+          image.src = item.photo;
+          image.alt = `Yutuq rasmi ${index + 1}`;
+          image.loading = "lazy";
+          const meta = document.createElement("div");
+          meta.className = "profile-photo-meta";
+          const title = document.createElement("strong");
+          title.textContent = `Yutuq rasmi ${index + 1}`;
+          meta.append(title);
+          const dateText = formatUploadDate(item.createdAt);
+          if (dateText) {
+            const date = document.createElement("time");
+            date.className = "profile-media-date";
+            date.textContent = dateText;
+            meta.append(date);
+          }
+          const actions = document.createElement("div");
+          actions.className = "profile-media-actions";
+          const editButton = createProfileActionButton("Tahrirlash");
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.accept = "image/*";
+          fileInput.hidden = true;
+          editButton.addEventListener("click", () => fileInput.click());
+          fileInput.addEventListener("change", async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+              window.alert("Rasm faylini tanlang");
+              fileInput.value = "";
+              return;
+            }
+            editButton.disabled = true;
+            try {
+              await saveItem(photoStore, {
+                ...item,
+                photo: await fileToBase64(file),
+                updatedAt: Date.now()
+              });
+            } catch {
+              window.alert("Rasmni yangilab bo‘lmadi");
+            } finally {
+              editButton.disabled = false;
+              fileInput.value = "";
+            }
+          });
+          actions.append(editButton, createDeleteButton(photoStore, item, "Yutuq rasmini o‘chirmoqchimisiz?"), fileInput);
+          card.append(image, meta, actions);
+          profilePhotoGrid.append(card);
+        });
+
+        videos.forEach((item) => {
+          const card = document.createElement("article");
+          card.className = "profile-video-card";
+          const icon = document.createElement("span");
+          icon.className = "profile-video-icon";
+          icon.setAttribute("aria-hidden", "true");
+          icon.textContent = "▶";
+          const info = document.createElement("div");
+          info.className = "profile-video-info";
+          const link = document.createElement("a");
+          link.href = item.instagram;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Instagram videosini ochish";
+          info.append(link);
+          const dateText = formatUploadDate(item.createdAt);
+          if (dateText) {
+            const date = document.createElement("time");
+            date.className = "profile-media-date";
+            date.textContent = dateText;
+            info.append(date);
+          }
+
+          const main = document.createElement("div");
+          main.className = "profile-video-main";
+          main.append(icon, info);
+          const actions = document.createElement("div");
+          actions.className = "profile-media-actions";
+          const editButton = createProfileActionButton("Tahrirlash");
+          const editForm = document.createElement("form");
+          editForm.className = "profile-edit-form";
+          editForm.hidden = true;
+          const editInput = document.createElement("input");
+          editInput.type = "url";
+          editInput.value = item.instagram;
+          editInput.placeholder = "https://www.instagram.com/...";
+          editInput.required = true;
+          const editActions = document.createElement("div");
+          editActions.className = "profile-edit-buttons";
+          const saveButton = createProfileActionButton("Saqlash");
+          saveButton.type = "submit";
+          const cancelButton = createProfileActionButton("Bekor qilish");
+          cancelButton.addEventListener("click", () => {
+            editInput.value = item.instagram;
+            editInput.setCustomValidity("");
+            editForm.hidden = true;
+          });
+          editActions.append(saveButton, cancelButton);
+          editForm.append(editInput, editActions);
+          editButton.addEventListener("click", () => {
+            editForm.hidden = !editForm.hidden;
+            if (!editForm.hidden) editInput.focus();
+          });
+          editInput.addEventListener("input", () => editInput.setCustomValidity(""));
+          editForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!editForm.reportValidity()) return;
+            const instagram = getInstagramUrl(editInput.value);
+            if (!instagram) {
+              editInput.setCustomValidity("Instagram havolasini kiriting");
+              editInput.reportValidity();
+              return;
+            }
+            saveButton.disabled = true;
+            try {
+              await saveItem(videoStore, {
+                ...item,
+                instagram,
+                updatedAt: Date.now()
+              });
+              editForm.hidden = true;
+            } catch {
+              window.alert("Havolani yangilab bo‘lmadi");
+            } finally {
+              saveButton.disabled = false;
+            }
+          });
+          actions.append(editButton, createDeleteButton(videoStore, item, "Instagram havolasini o‘chirmoqchimisiz?"));
+          card.append(main, actions, editForm);
+          profileVideoList.append(card);
+        });
+      }
+
+      homeTab.addEventListener("click", () => showSection("home"));
+      profileTab.addEventListener("click", () => {
+        renderProfile();
+        renderProfileMedia();
+        showSection("profile");
+      });
+
+      async function isAccessCodeValid(value) {
+        const bytes = new TextEncoder().encode(value.trim());
+        const digest = await crypto.subtle.digest("SHA-256", bytes);
+        const hash = Array.from(new Uint8Array(digest), (byte) =>
+          byte.toString(16).padStart(2, "0")
+        ).join("");
+        return hash === accessCodeHash;
+      }
+
+      registrationForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!registrationForm.reportValidity()) return;
+        accessCodeInput.setCustomValidity("");
+
+        const button = registrationForm.querySelector("button");
+        button.disabled = true;
+        try {
+          if (!crypto.subtle) throw new Error("Secure code verification is unavailable");
+          const validCode = await isAccessCodeValid(accessCodeInput.value);
+          if (!validCode) {
+            accessCodeInput.setCustomValidity("Maxfiy kod noto‘g‘ri");
+            accessCodeInput.reportValidity();
+            return;
+          }
+
+          await set(ref(database, `${userPath}/profile`), {
+            firstName: document.getElementById("first-name").value.trim(),
+            lastName: document.getElementById("last-name").value.trim(),
+            group: document.getElementById("student-group").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            registeredAt: Date.now()
+          });
+          registrationForm.reset();
+        } catch {
+          window.alert("Ro‘yxatdan o‘tib bo‘lmadi. Internet aloqasi va Firebase qoidalarini tekshiring");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      accessCodeInput.addEventListener("input", () => accessCodeInput.setCustomValidity(""));
+
+      photoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!photoForm.reportValidity()) return;
+        const photo = photoInput.files[0];
+        if (!photo || !photo.type.startsWith("image/")) return;
+
+        const button = photoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(photoStore, {
+            id: createId(),
+            photo: await fileToBase64(photo),
+            createdAt: Date.now()
+          });
+          photoUploadStatus.textContent = "Rasm muvaffaqiyatli yuklandi";
+          photoUploadStatus.classList.add("is-uploaded");
+          photoForm.reset();
+        } catch {
+          photoUploadStatus.textContent = "Rasmni yuklab bo‘lmadi";
+          photoUploadStatus.classList.remove("is-uploaded");
+          window.alert("Rasmni Firebase bazasiga saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      videoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!videoForm.reportValidity()) return;
+
+        let instagram;
+        try {
+          instagram = new URL(instagramInput.value.trim());
+        } catch {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+        instagramInput.setCustomValidity("");
+        if (instagram.protocol !== "https:" ||
+            !(instagram.hostname === "instagram.com" || instagram.hostname.endsWith(".instagram.com"))) {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+
+        const button = videoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(videoStore, {
+            id: createId(),
+            instagram: instagram.href,
+            createdAt: Date.now()
+          });
+          videoUploadStatus.textContent = "Havola muvaffaqiyatli yuklandi";
+          videoUploadStatus.classList.add("is-uploaded");
+          videoForm.reset();
+        } catch {
+          videoUploadStatus.textContent = "Havolani yuklab bo‘lmadi";
+          videoUploadStatus.classList.remove("is-uploaded");
+          window.alert("Havolani Firebase bazasiga saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      instagramInput.addEventListener("input", () => instagramInput.setCustomValidity(""));
+
+      onValue(
+        ref(database, userPath),
+        (snapshot) => {
+          userData = snapshot.val() || {};
+          const profile = userData.profile;
+          const isRegistered = Boolean(
+            profile && profile.firstName && profile.lastName && profile.group && profile.phone
+          );
+          registrationView.hidden = isRegistered;
+          appView.hidden = !isRegistered;
+          pageTitle.textContent = isRegistered
+            ? (activeSection === "home" ? "Talaba yutuqlari" : "Profil")
+            : "Ro‘yxatdan o‘tish";
+          if (isRegistered) {
+            renderProfile();
+            renderProfileMedia();
+          }
+          renderUploadStatuses();
+        },
+        () => window.alert("Firebase bazasiga ulanib bo‘lmadi. URL va qoidalarni tekshiring")
+      );
+    })();
+  </script>
+</body>
+</html>
