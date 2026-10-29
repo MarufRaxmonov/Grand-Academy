@@ -686,16 +686,8 @@
       display: grid;
       justify-items: center;
       gap: 5px;
-      padding: 0 8px 18px;
+      padding: clamp(280px, 28svh, 340px) 8px 18px;
       text-align: center;
-    }
-    .registration-seal {
-      display: block;
-      width: clamp(148px, 42vw, 194px);
-      height: auto;
-      margin: 0 auto 1px;
-      border-radius: 50%;
-      filter: drop-shadow(0 7px 12px rgba(12, 37, 75, .14));
     }
     .registration-brand-title {
       margin: 0;
@@ -903,7 +895,6 @@
     }
     .registration-section { margin: 0 auto 4px; }
     .registration-brand { padding-bottom: 34px; }
-    .registration-seal { width: clamp(140px, 37vw, 258px); }
     .registration-section #registration-form .registration-form-heading { min-height: 110px; }
     #registration-form .registration-form-content { gap: 11px; padding: 16px 20px 60px; }
     .registration-field { min-height: 55px; }
@@ -926,7 +917,6 @@
 
     <section class="registration-section" id="registration-view" hidden>
       <div class="registration-brand">
-        <img class="registration-seal" id="registration-seal" src="./academy-registration-emblem.jpg" alt="Grant Academy emblemasi" decoding="async">
         <h2 class="registration-brand-title">Grant Academy</h2>
         <p class="registration-brand-tagline">BIRGA O‘RGANAMIZ, BIRGA YUTAMIZ</p>
       </div>
