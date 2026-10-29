@@ -686,16 +686,8 @@
       display: grid;
       justify-items: center;
       gap: 5px;
-      padding: 0 8px 18px;
+      padding: clamp(280px, 28svh, 340px) 8px 18px;
       text-align: center;
-    }
-    .registration-seal {
-      display: block;
-      width: clamp(148px, 42vw, 194px);
-      height: auto;
-      margin: 0 auto 1px;
-      border-radius: 50%;
-      filter: drop-shadow(0 7px 12px rgba(12, 37, 75, .14));
     }
     .registration-brand-title {
       margin: 0;
@@ -903,7 +895,6 @@
     }
     .registration-section { margin: 0 auto 4px; }
     .registration-brand { padding-bottom: 34px; }
-    .registration-seal { width: clamp(140px, 37vw, 258px); }
     .registration-section #registration-form .registration-form-heading { min-height: 110px; }
     #registration-form .registration-form-content { gap: 11px; padding: 16px 20px 60px; }
     .registration-field { min-height: 55px; }
@@ -926,7 +917,6 @@
 
     <section class="registration-section" id="registration-view" hidden>
       <div class="registration-brand">
-        <img class="registration-seal" id="registration-seal" alt="Grant Academy emblemasi" hidden>
         <h2 class="registration-brand-title">Grant Academy</h2>
         <p class="registration-brand-tagline">BIRGA O‘RGANAMIZ, BIRGA YUTAMIZ</p>
       </div>
@@ -1172,15 +1162,12 @@
         appId: "1:403319946045:web:e29dde92968c6a88fda354",
         measurementId: "G-B6F4RDYMN9"
       };
-      const backgroundDatabaseUrl = "https://grant-academy-2-default-rtdb.firebaseio.com";
-      const backgroundImagePath = "backgroundImage";
       const photoStore = "rasmlar";
       const videoStore = "video-havolalar";
       const photoForm = document.getElementById("photo-form");
       const videoForm = document.getElementById("video-form");
       const registrationView = document.getElementById("registration-view");
       const registrationForm = document.getElementById("registration-form");
-      const registrationSeal = document.getElementById("registration-seal");
       const appView = document.getElementById("app-view");
       const welcomeModal = document.getElementById("welcome-modal");
       const welcomeName = document.getElementById("welcome-name");
@@ -1234,88 +1221,6 @@
         loadingSpinner.hidden = true;
         loadingMessage.textContent = message;
         loadingRetryButton.hidden = !canRetry;
-      }
-
-      function getBackgroundImageUrl(value) {
-        const isObject = value && typeof value === "object";
-        const candidate = typeof value === "string"
-          ? value
-          : isObject
-            ? value.url || value.imageUrl || value.backgroundImage || value.src ||
-              value.dataUrl || value.imageData || value.base64 || value.data
-            : "";
-        if (typeof candidate !== "string" || !candidate.trim()) return "";
-        const normalizedCandidate = candidate.trim().replace(/\s+/g, "");
-        const dataImagePattern = /^data:image\/(?:png|jpe?g|webp|gif|avif);base64,[a-z0-9+/]+=*$/i;
-        if (dataImagePattern.test(normalizedCandidate)) return normalizedCandidate;
-        const rawBase64Pattern = /^[a-z0-9+/]+=*$/i;
-        if (rawBase64Pattern.test(normalizedCandidate) && normalizedCandidate.length > 128) {
-          const declaredType = isObject
-            ? value.mimeType || value.contentType || value.type
-            : "";
-          const mimeType = typeof declaredType === "string" &&
-            /^image\/(?:png|jpe?g|webp|gif|avif)$/i.test(declaredType)
-            ? declaredType
-            : "image/jpeg";
-          return `data:${mimeType};base64,${normalizedCandidate}`;
-        }
-        try {
-          const url = new URL(normalizedCandidate);
-          return url.protocol === "https:" ? url.href : "";
-        } catch {
-          return "";
-        }
-      }
-
-      function applyBackgroundImage(value) {
-        const imageUrl = getBackgroundImageUrl(value);
-        if (!imageUrl) {
-          registrationSeal.removeAttribute("src");
-          registrationSeal.hidden = true;
-          return;
-        }
-        registrationSeal.onerror = () => {
-          registrationSeal.hidden = true;
-        };
-        registrationSeal.hidden = false;
-        registrationSeal.src = imageUrl;
-      }
-
-      function getBackgroundImageEndpoint() {
-        const path = backgroundImagePath
-          .split("/")
-          .filter(Boolean)
-          .map(encodeURIComponent)
-          .join("/");
-        return `${backgroundDatabaseUrl.replace(/\/+$/, "")}/${path}.json`;
-      }
-
-      async function fetchBackgroundImage() {
-        const response = await fetch(getBackgroundImageEndpoint(), { cache: "no-store" });
-        if (!response.ok) throw new Error("Background image could not be read");
-        applyBackgroundImage(await response.json());
-      }
-
-      function listenForBackgroundImage() {
-        const endpoint = getBackgroundImageEndpoint();
-        if (!("EventSource" in window)) {
-          fetchBackgroundImage().catch(() => {});
-          return;
-        }
-
-        const stream = new EventSource(endpoint);
-        stream.addEventListener("put", (event) => {
-          try {
-            applyBackgroundImage(JSON.parse(event.data).data);
-          } catch {
-            // Ignore malformed background updates; the rest of the app keeps working.
-          }
-        });
-        stream.addEventListener("patch", () => {
-          fetchBackgroundImage().catch(() => {});
-        });
-        stream.addEventListener("cancel", () => stream.close());
-        stream.addEventListener("auth_revoked", () => stream.close());
       }
 
       if (window.Telegram && window.Telegram.WebApp) {
@@ -1971,7 +1876,6 @@
       photoCaptionInput.addEventListener("input", () => photoCaptionInput.setCustomValidity(""));
       videoCaptionInput.addEventListener("input", () => videoCaptionInput.setCustomValidity(""));
 
-      listenForBackgroundImage();
       restoreLocalCache();
       onValue(
         ref(database, userPath),
