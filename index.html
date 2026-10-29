@@ -1,0 +1,1900 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Talaba yutuqlari</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      color: #202124;
+      background: #f6f7f9;
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      font-family: Arial, sans-serif;
+    }
+    main { width: min(100%, 480px); margin: 0 auto; }
+    h1 { margin: 0 0 22px; font-size: 23px; }
+    form, .saved-item {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    form { margin-bottom: 12px; }
+    label { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+    input[type="file"], input[type="url"], input[type="text"],
+    input[type="tel"], input[type="password"], textarea {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      border: 1px solid #d6d9df;
+      border-radius: 8px;
+      background: #fff;
+      color: #202124;
+      font: inherit;
+    }
+    input[type="file"] { padding: 8px; }
+    textarea { min-height: 72px; resize: vertical; }
+    .registration-section {
+      margin-bottom: 12px;
+      perspective: 1000px;
+      animation: registration-enter .7s cubic-bezier(.2, .8, .2, 1) both;
+    }
+    .registration-section form {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: 24px 20px 20px;
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 23px;
+      background: linear-gradient(145deg, #fff 0%, #f7f9ff 58%, #fbf8ff 100%);
+      box-shadow: 0 20px 48px rgba(34, 64, 125, .12), 0 3px 10px rgba(15, 23, 42, .04);
+    }
+    .registration-section form::before {
+      position: absolute;
+      z-index: -1;
+      top: -92px;
+      right: -74px;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(109, 93, 252, .16), rgba(82, 133, 255, .06) 42%, transparent 72%);
+      content: "";
+      animation: registration-glow 5.5s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .registration-section form::after {
+      position: absolute;
+      top: 0;
+      right: 22px;
+      left: 22px;
+      height: 3px;
+      border-radius: 0 0 999px 999px;
+      background: linear-gradient(90deg, #2878e5, #7657e8, #38bdf8, #2878e5);
+      background-size: 220% 100%;
+      content: "";
+      animation: registration-gradient 5s linear infinite;
+      pointer-events: none;
+    }
+    .registration-section label {
+      margin-top: 17px;
+      margin-bottom: 7px;
+      color: #28344e;
+      font-size: 13px;
+      letter-spacing: .01em;
+    }
+    #registration-form input {
+      min-height: 52px;
+      padding: 12px 14px 12px 48px;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      background-color: rgba(255, 255, 255, .92);
+      background-repeat: no-repeat;
+      background-position: 15px center;
+      background-size: 20px 20px;
+      box-shadow: inset 0 1px 2px rgba(35, 55, 90, .025), 0 3px 10px rgba(35, 55, 90, .025);
+      transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease, transform .2s ease;
+      animation: registration-field-in .45s both;
+    }
+    #registration-form input:hover:not(:focus-visible) {
+      border-color: #bdcbe0;
+      background-color: #fff;
+    }
+    #registration-form input:focus-visible {
+      outline: none;
+      border-color: #6879e8;
+      background-color: #fff;
+      box-shadow: 0 0 0 4px rgba(88, 105, 225, .13), 0 8px 18px rgba(50, 75, 150, .08);
+      transform: translateY(-1px);
+    }
+    #first-name, #last-name {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238091a8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M5 21v-2a7 7 0 0 1 14 0v2'/%3E%3C/svg%3E");
+    }
+    #student-group {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238091a8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='10' cy='7' r='4'/%3E%3Cpath d='M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
+    }
+    #phone {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238091a8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.79a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.89.34 1.83.58 2.79.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E");
+    }
+    #access-code {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238091a8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");
+    }
+    #registration-form input:nth-of-type(1) { animation-delay: .04s; }
+    #registration-form input:nth-of-type(2) { animation-delay: .1s; }
+    #registration-form input:nth-of-type(3) { animation-delay: .16s; }
+    #registration-form input:nth-of-type(4) { animation-delay: .22s; }
+    #registration-form input:nth-of-type(5) { animation-delay: .28s; }
+    #registration-form .upload-button {
+      position: relative;
+      overflow: hidden;
+      min-height: 52px;
+      margin-top: 22px;
+      border-radius: 13px;
+      background: linear-gradient(105deg, #2878e5 0%, #5158df 52%, #7950d9 100%);
+      background-size: 200% 100%;
+      box-shadow: 0 10px 22px rgba(66, 87, 207, .25);
+      transition: background-position .45s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    #registration-form .upload-button::after {
+      position: absolute;
+      top: -35%;
+      bottom: -35%;
+      left: -55%;
+      width: 35%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent);
+      content: "";
+      transform: skewX(-22deg);
+      animation: registration-button-shine 4.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    #registration-form .upload-button:hover:not(:disabled) {
+      background-position: 100% 50%;
+      box-shadow: 0 13px 26px rgba(66, 87, 207, .32);
+      transform: translateY(-2px);
+    }
+    #registration-form .upload-button:active:not(:disabled) { transform: translateY(0) scale(.99); }
+    #registration-form .upload-button:focus-visible {
+      outline: 3px solid rgba(80, 105, 230, .28);
+      outline-offset: 3px;
+    }
+    @keyframes registration-enter {
+      from { opacity: 0; transform: translateY(18px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes registration-field-in {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes registration-glow {
+      from { opacity: .55; transform: translate3d(-7px, 5px, 0) scale(.92); }
+      to { opacity: 1; transform: translate3d(8px, -5px, 0) scale(1.08); }
+    }
+    @keyframes registration-gradient { to { background-position: 220% 0; } }
+    @keyframes registration-button-shine {
+      0%, 72%, 100% { left: -55%; }
+      42% { left: 125%; }
+    }
+    .upload-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: #2878e5;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .upload-button:disabled { opacity: .6; cursor: wait; }
+    .upload-status {
+      margin: -2px 0 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #626a73;
+      background: #eef0f3;
+      font-size: 14px;
+    }
+    .upload-status.is-uploaded { color: #167044; background: #e8f6ee; }
+    #app-view { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .loading-view {
+      display: grid;
+      min-height: 65vh;
+      align-content: center;
+      justify-items: center;
+      gap: 14px;
+      padding: 24px 12px;
+      color: #626a73;
+      text-align: center;
+    }
+    .loading-spinner {
+      position: relative;
+      display: block;
+      width: 52px;
+      height: 52px;
+      border: 3px solid rgba(40, 120, 229, .13);
+      border-top-color: #2878e5;
+      border-right-color: #2878e5;
+      border-radius: 50%;
+      box-shadow: 0 0 0 7px rgba(40, 120, 229, .045), 0 7px 18px rgba(40, 120, 229, .12);
+      animation: loading-spin 1s cubic-bezier(.6, .1, .4, .9) infinite;
+    }
+    .loading-spinner::before {
+      position: absolute;
+      z-index: -1;
+      inset: -10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(40, 120, 229, .15), transparent 70%);
+      content: "";
+      animation: loading-pulse 1.8s ease-in-out infinite;
+    }
+    .loading-spinner::after {
+      position: absolute;
+      inset: 8px;
+      border: 2px solid transparent;
+      border-bottom-color: #8b5cf6;
+      border-left-color: #8b5cf6;
+      border-radius: 50%;
+      content: "";
+      animation: loading-spin-reverse 1.4s linear infinite;
+    }
+    .loading-message { margin: 0; font-size: 14px; }
+    .loading-retry {
+      min-height: 42px;
+      padding: 8px 16px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: #2878e5;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    @keyframes loading-spin { to { transform: rotate(360deg); } }
+    @keyframes loading-spin-reverse { to { transform: rotate(-360deg); } }
+    @keyframes loading-pulse {
+      0%, 100% { opacity: .48; transform: scale(.88); }
+      50% { opacity: 1; transform: scale(1.08); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .loading-spinner, .loading-spinner::before, .loading-spinner::after { animation: none; }
+      .registration-section, #registration-form input,
+      .registration-section form::before, .registration-section form::after,
+      #registration-form .upload-button::after { animation: none; }
+      .registration-section input, #registration-form .upload-button { transition: none; }
+    }
+    .home-menu-intro { margin: 0 0 14px; color: #626a73; font-size: 14px; }
+    .home-section-grid { display: grid; gap: 10px; }
+    .home-section-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 72px;
+      padding: 12px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      color: #202124;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+    .home-section-card:active { transform: scale(.99); }
+    .home-section-number {
+      display: grid;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 12px;
+      color: #1769d2;
+      background: #eaf2ff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .home-section-card:nth-child(3n + 2) .home-section-number { color: #167044; background: #e8f6ee; }
+    .home-section-card:nth-child(3n) .home-section-number { color: #7450a8; background: #f1ebfa; }
+    .home-section-copy { display: grid; flex: 1; min-width: 0; gap: 4px; }
+    .home-section-copy strong { font-size: 15px; line-height: 1.3; }
+    .home-section-copy small { color: #737b84; font-size: 12px; line-height: 1.3; }
+    .home-section-chevron { color: #9aa1a9; font-size: 24px; }
+    .home-section-back {
+      display: inline-block;
+      margin: 0 0 16px;
+      padding: 7px 0;
+      border: 0;
+      color: #1769d2;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .home-placeholder-card {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 24px 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fff;
+      text-align: center;
+    }
+    .home-placeholder-icon {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 15px;
+      color: #1769d2;
+      background: #eaf2ff;
+      font-size: 22px;
+    }
+    .home-placeholder-card p { margin: 0; color: #626a73; font-size: 14px; line-height: 1.5; }
+    .profile-card {
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .profile-card h2 { margin: 0 0 14px; font-size: 18px; }
+    .profile-details { margin: 0; }
+    .profile-details > div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-top: 1px solid #eef0f3;
+    }
+    .profile-details dt { color: #626a73; }
+    .profile-details dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .profile-media-section { margin-top: 20px; }
+    .profile-media-nav { display: grid; gap: 10px; margin-top: 18px; }
+    .profile-media-nav-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 76px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      color: #202124;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .profile-media-nav-text { display: grid; flex: 1; gap: 4px; }
+    .profile-media-nav-text strong { font-size: 15px; }
+    .profile-media-nav-text small { color: #737b84; font-size: 12px; }
+    .profile-media-nav-card .profile-media-count { min-width: 34px; padding: 7px 9px; font-size: 14px; }
+    .profile-media-chevron { color: #737b84; font-size: 24px; }
+    .profile-media-page { margin-top: 18px; }
+    .profile-media-page-heading { margin-bottom: 14px; }
+    .profile-back-button {
+      justify-self: start;
+      padding: 7px 0;
+      border: 0;
+      color: #1769d2;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .profile-media-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .profile-media-heading h2 { margin: 0; font-size: 18px; }
+    .profile-media-count {
+      min-width: 28px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #1769d2;
+      background: #eaf2ff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .profile-photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .profile-photo-card, .profile-video-card {
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .profile-photo-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #eef0f3;
+    }
+    .profile-photo-meta { display: grid; gap: 4px; padding: 10px; }
+    .profile-photo-meta strong { font-size: 13px; }
+    .profile-media-date { color: #737b84; font-size: 12px; }
+    .profile-media-source {
+      justify-self: start;
+      max-width: 100%;
+      padding: 4px 7px;
+      border-radius: 999px;
+      color: #1769d2;
+      background: #eaf2ff;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+    .profile-video-list { display: grid; gap: 10px; }
+    .profile-video-card { display: grid; gap: 10px; padding: 12px; }
+    .profile-video-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .profile-video-icon {
+      display: grid;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: #2878e5;
+      font-size: 16px;
+    }
+    .profile-video-info { display: grid; min-width: 0; gap: 4px; }
+    .profile-video-info a { color: #1769d2; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .profile-media-caption { margin: 0; color: #202124; font-size: 14px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .profile-media-actions { display: flex; gap: 8px; padding: 0 10px 10px; }
+    .profile-video-card .profile-media-actions { padding: 0; }
+    .profile-action-button {
+      flex: 1;
+      min-height: 38px;
+      padding: 7px 9px;
+      border: 1px solid #d6d9df;
+      border-radius: 7px;
+      color: #1769d2;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .profile-action-button:disabled { opacity: .6; cursor: wait; }
+    .profile-action-button.delete { color: #b42318; border-color: #f1c6c3; }
+    .profile-edit-form {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0 0;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8f9fb;
+    }
+    .profile-edit-form input[type="url"] { min-height: 40px; }
+    .profile-edit-buttons { display: flex; gap: 8px; }
+    .profile-empty {
+      margin: 0;
+      padding: 14px;
+      border: 1px dashed #d6d9df;
+      border-radius: 10px;
+      color: #737b84;
+      background: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    .bottom-nav {
+      position: fixed;
+      z-index: 10;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 8px max(16px, calc((100% - 480px) / 2 + 16px)) calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .bottom-nav button {
+      min-height: 48px;
+      border: 0;
+      border-radius: 8px;
+      color: #626a73;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .bottom-nav button[aria-current="page"] { color: #1769d2; background: #eaf2ff; }
+    .remove-button {
+      display: block;
+      width: auto;
+      min-height: 0;
+      margin-top: 9px;
+      padding: 0;
+      border: 0;
+      color: #777;
+      background: none;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .welcome-overlay {
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(ellipse at 12% 12%, rgba(59, 130, 246, .34), transparent 42%),
+        radial-gradient(ellipse at 88% 90%, rgba(124, 58, 237, .28), transparent 40%),
+        rgba(9, 16, 35, .82);
+      -webkit-backdrop-filter: blur(10px) saturate(130%);
+      backdrop-filter: blur(10px) saturate(130%);
+      animation: welcome-fade-in .24s ease-out both;
+    }
+    .welcome-card {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      width: min(100%, 390px);
+      padding: 36px 28px 28px;
+      border: 1px solid rgba(255, 255, 255, .78);
+      border-radius: 28px;
+      background: linear-gradient(155deg, #fff 0%, #f8fbff 100%);
+      box-shadow: 0 30px 80px rgba(5, 13, 31, .34);
+      text-align: center;
+      animation: welcome-card-enter .36s cubic-bezier(.2, .8, .2, 1) both;
+    }
+    .welcome-card::before {
+      position: absolute;
+      z-index: -1;
+      top: -126px;
+      right: -86px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(96, 165, 250, .2), rgba(96, 165, 250, 0) 70%);
+      content: "";
+      pointer-events: none;
+    }
+    .welcome-card::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed, #38bdf8);
+      content: "";
+    }
+    .welcome-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 22px;
+      padding: 7px 12px 7px 8px;
+      border: 1px solid #dbeafe;
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: rgba(239, 246, 255, .9);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .welcome-brand::before {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 9px;
+      color: #fff;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, .2);
+      content: "G";
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .welcome-heading {
+      margin: 0 0 12px;
+      color: #111827;
+      font-size: clamp(25px, 7vw, 30px);
+      letter-spacing: -.04em;
+      line-height: 1.15;
+    }
+    .welcome-name {
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 26px;
+      padding: 11px 16px;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      color: #1e40af;
+      background: linear-gradient(180deg, #f1f7ff, #eaf2ff);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    .welcome-button {
+      width: 100%;
+      min-height: 52px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, #2878e5, #1d4ed8);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .24);
+      transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+    }
+    .welcome-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 13px 26px rgba(37, 99, 235, .3);
+    }
+    .welcome-button:active:not(:disabled) { transform: translateY(0); }
+    .welcome-button:focus-visible {
+      outline: 3px solid rgba(59, 130, 246, .35);
+      outline-offset: 3px;
+    }
+    .welcome-button:disabled { opacity: .72; cursor: wait; }
+    @keyframes welcome-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes welcome-card-enter {
+      from { opacity: 0; transform: translateY(12px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (max-width: 360px) {
+      .welcome-card { padding: 32px 20px 22px; border-radius: 23px; }
+      .welcome-brand { margin-bottom: 19px; }
+      .welcome-name { margin-bottom: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .welcome-overlay, .welcome-card { animation: none; }
+      .welcome-button { transition: none; }
+    }
+    @media (max-width: 360px) {
+      body { padding: 18px 12px; }
+      form, .saved-item { padding: 13px; }
+      .registration-section form { padding: 21px 16px 18px; }
+    }
+    main:has(#registration-view:not([hidden])) > #page-title { display: none !important; }
+    .registration-section {
+      width: min(92vw, 420px);
+      min-width: 0;
+      margin: 0 auto 12px;
+      perspective: none;
+      animation: registration-enter .55s cubic-bezier(.2, .8, .2, 1) both;
+    }
+    .registration-brand {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      padding: clamp(8px, 1.5svh, 16px) 8px 12px;
+      text-align: center;
+    }
+    .registration-brand-title {
+      margin: 0;
+      color: #102b52;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(28px, 7vw, 35px);
+      font-weight: 700;
+      letter-spacing: -.035em;
+      line-height: 1.08;
+    }
+    .registration-brand-tagline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 3px 0 0;
+      color: #17304f;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .17em;
+      line-height: 1.5;
+    }
+    .registration-brand-tagline::before,
+    .registration-brand-tagline::after {
+      width: 25px;
+      height: 1px;
+      background: #b99a55;
+      content: "";
+    }
+    #registration-form {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, .94);
+      border-radius: 25px;
+      background: #fff;
+      box-shadow: 0 22px 52px rgba(14, 37, 73, .2), 0 3px 12px rgba(17, 43, 78, .08);
+    }
+    #registration-form::before,
+    #registration-form::after { content: none; }
+    .registration-form-heading {
+      position: relative;
+      display: flex;
+      min-height: 88px;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      overflow: hidden;
+      padding: 18px 20px;
+      color: #fff;
+      background:
+        radial-gradient(ellipse at -3% 105%, transparent 66%, rgba(205, 174, 105, .95) 66.5%, transparent 67.5%),
+        radial-gradient(ellipse at 103% 105%, transparent 66%, rgba(205, 174, 105, .95) 66.5%, transparent 67.5%),
+        linear-gradient(135deg, #123d73, #0c2b54);
+    }
+    .registration-form-heading svg { width: 34px; height: 34px; flex: 0 0 auto; }
+    .registration-form-heading h2 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(20px, 5.2vw, 24px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .registration-form-content {
+      display: grid;
+      gap: 10px;
+      padding: 16px 20px 24px;
+    }
+    .registration-field {
+      position: relative;
+      display: grid;
+      min-height: 58px;
+      grid-template-columns: 31px minmax(0, 1fr) 24px;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border: 1px solid #d8e1ec;
+      border-radius: 16px;
+      background: #f8faff;
+      box-shadow: inset 0 1px 2px rgba(17, 43, 78, .025);
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .registration-field:focus-within {
+      border-color: #567bb1;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 91, 153, .11);
+    }
+    .registration-field-icon {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      color: #102f5a;
+    }
+    .registration-field-icon svg { display: block; width: 24px; height: 24px; }
+    .registration-field-copy { display: grid; min-width: 0; gap: 1px; }
+    #registration-form .registration-field-label {
+      display: block;
+      margin: 0;
+      color: #142c4d;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    #registration-form .registration-field input {
+      width: 100%;
+      min-width: 0;
+      min-height: 20px;
+      margin: 0;
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      outline: 0;
+      color: #263c59;
+      background: transparent !important;
+      background-image: none !important;
+      box-shadow: none !important;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.4;
+      animation: none;
+      transform: none;
+    }
+    #registration-form .registration-field input::placeholder { color: #8a99ad; opacity: 1; }
+    #registration-form .registration-field input:focus-visible {
+      border: 0 !important;
+      outline: 0;
+      box-shadow: none !important;
+      transform: none;
+    }
+    .registration-field-trailing {
+      display: grid;
+      width: 24px;
+      height: 28px;
+      place-items: center;
+      color: #102f5a;
+    }
+    .registration-field-trailing svg { width: 20px; height: 20px; }
+    .registration-password-toggle {
+      padding: 0;
+      border: 0;
+      color: #718198;
+      background: transparent;
+      cursor: pointer;
+    }
+    #toggle-access-code[aria-pressed="false"] .password-eye-hidden,
+    #toggle-access-code[aria-pressed="true"] .password-eye-open { display: none; }
+    .registration-password-toggle:focus-visible {
+      outline: 2px solid #567bb1;
+      outline-offset: 2px;
+      border-radius: 5px;
+    }
+    #registration-form .upload-button {
+      min-height: 51px;
+      margin-top: 2px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, #123f78, #092c58);
+      box-shadow: 0 8px 17px rgba(11, 46, 89, .21);
+      font-size: 15px;
+      letter-spacing: .01em;
+      animation: none;
+    }
+    #registration-form .upload-button::after { content: none; }
+    #registration-form .upload-button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #194d8d, #103766);
+      box-shadow: 0 11px 21px rgba(11, 46, 89, .27);
+      transform: translateY(-1px);
+    }
+    .registration-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 17px;
+      padding: 12px 0 0;
+      color: #173961;
+    }
+    .registration-footer span { width: 45px; height: 1px; background: #b99a55; }
+    .registration-footer svg { width: 38px; height: 45px; }
+    @media (max-width: 400px) {
+      .registration-brand { padding-bottom: 14px; }
+      .registration-brand-tagline { gap: 6px; font-size: 8px; letter-spacing: .13em; }
+      .registration-brand-tagline::before,
+      .registration-brand-tagline::after { width: 17px; }
+      .registration-form-heading { min-height: 78px; }
+      .registration-form-content { padding: 14px 13px 18px; gap: 9px; }
+      .registration-field { min-height: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .registration-section { animation: none; }
+      .registration-field, #registration-form .upload-button { transition: none; }
+    }
+    body:has(#registration-view:not([hidden])) {
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: 12px 16px 24px;
+      background-image: url("./academy-registration-bg.jpg");
+      background-position: center top;
+      background-size: cover;
+      background-attachment: fixed;
+    }
+    body:has(#registration-view:not([hidden])) main {
+      min-height: calc(100vh - 36px);
+      min-height: calc(100svh - 36px);
+    }
+    .registration-section { margin: 0 auto 4px; }
+    .registration-brand { padding-bottom: 14px; }
+    .registration-section #registration-form .registration-form-heading { min-height: 88px; }
+    #registration-form .registration-form-content { gap: 9px; padding: 14px 16px 18px; }
+    .registration-field { min-height: 54px; }
+    #registration-form .upload-button { margin-top: 0; }
+    @media (max-width: 400px) {
+      body:has(#registration-view:not([hidden])) { padding: 8px 12px 20px; }
+      .registration-brand { padding-bottom: 10px; }
+      #registration-form .registration-form-content { padding-right: 13px; padding-left: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="page-title" hidden>Talaba yutuqlari</h1>
+    <section class="loading-view" id="loading-view" role="status" aria-live="polite">
+      <span class="loading-spinner" id="loading-spinner" aria-hidden="true"></span>
+      <p class="loading-message" id="loading-message">Ma’lumotlar yuklanmoqda...</p>
+      <button class="loading-retry" id="loading-retry" type="button" hidden>Qayta urinish</button>
+    </section>
+
+    <section class="registration-section" id="registration-view" hidden>
+      <div class="registration-brand">
+        <h2 class="registration-brand-title">Grant Academy</h2>
+        <p class="registration-brand-tagline">BIRGA O‘RGANAMIZ, BIRGA YUTAMIZ</p>
+      </div>
+      <form id="registration-form">
+        <div class="registration-form-heading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="8" r="4"/>
+            <path d="M2 21v-2a7 7 0 0 1 12-4.9M19 8v8M15 12h8"/>
+          </svg>
+          <h2>Ro‘yxatdan o‘tish</h2>
+        </div>
+        <div class="registration-form-content">
+          <div class="registration-field">
+            <span class="registration-field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>
+            </span>
+            <div class="registration-field-copy">
+              <label class="registration-field-label" for="first-name">Ism</label>
+              <input id="first-name" name="firstName" type="text" autocomplete="given-name" maxlength="80" placeholder="Ismingizni kiriting" required>
+            </div>
+          </div>
+
+          <div class="registration-field">
+            <span class="registration-field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>
+            </span>
+            <div class="registration-field-copy">
+              <label class="registration-field-label" for="last-name">Familiya</label>
+              <input id="last-name" name="lastName" type="text" autocomplete="family-name" maxlength="80" placeholder="Familiyangizni kiriting" required>
+            </div>
+          </div>
+
+          <div class="registration-field">
+            <span class="registration-field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/><path d="M2 20v-1.2A5.8 5.8 0 0 1 7.8 13h2.4a5.8 5.8 0 0 1 5.8 5.8V20zM15.5 14h1a5.5 5.5 0 0 1 5.5 5.5v.5h-5"/></svg>
+            </span>
+            <div class="registration-field-copy">
+              <label class="registration-field-label" for="student-group">Guruh</label>
+              <input id="student-group" name="group" type="text" maxlength="80" placeholder="Guruhingizni kiriting" required>
+            </div>
+            <span class="registration-field-trailing" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>
+            </span>
+          </div>
+
+          <div class="registration-field">
+            <span class="registration-field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1.5 1.5 0 0 1 1.5-.36c1.2.4 2.4.6 3.6.6.8 0 1.5.7 1.5 1.5v3.5c0 .8-.7 1.5-1.5 1.5C10.8 22 2 13.2 2 2.5 2 1.7 2.7 1 3.5 1H7c.8 0 1.5.7 1.5 1.5 0 1.2.2 2.4.6 3.6.2.5.1 1.1-.4 1.5z"/></svg>
+            </span>
+            <div class="registration-field-copy">
+              <label class="registration-field-label" for="phone">Telefon raqami</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="24" placeholder="+998 90 123 45 67" required>
+            </div>
+          </div>
+
+          <div class="registration-field">
+            <span class="registration-field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zm-7-2a2 2 0 1 1 4 0v2h-4zm3 9.7V18h-2v-1.3a2 2 0 1 1 2 0z"/></svg>
+            </span>
+            <div class="registration-field-copy">
+              <label class="registration-field-label" for="access-code">Maxfiy so‘z</label>
+              <input id="access-code" name="accessCode" type="password" autocomplete="new-password" maxlength="100" placeholder="Parolni kiriting" required>
+            </div>
+            <button class="registration-field-trailing registration-password-toggle" id="toggle-access-code" type="button" aria-label="Maxfiy so‘zni ko‘rsatish" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <g class="password-eye-open"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g>
+                <g class="password-eye-hidden"><path d="m3 3 18 18M10.6 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a14 14 0 0 1-3 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.3 0 2.5-.3 3.5-.7"/></g>
+              </svg>
+            </button>
+          </div>
+
+          <button class="upload-button" type="submit">Ro‘yxatdan o‘tish&nbsp; <span aria-hidden="true">→</span></button>
+        </div>
+      </form>
+      <div class="registration-footer" aria-hidden="true">
+        <span></span>
+        <svg viewBox="0 0 40 48" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 9v34M14 14c-5-5-9-4-11-2 3 4 6 5 11 4M26 14c5-5 9-4 11-2-3 4-6 5-11 4M14 20c-5-4-8-3-10-1 3 3 6 4 10 3M26 20c5-4 8-3 10-1-3 3-6 4-10 3M15 26c-4-3-7-2-9 0 3 2 6 3 10 2M25 26c4-3 7-2 9 0-3 2-6 3-10 2"/>
+          <path d="M17 34h6M18 38h4M19 42h2" stroke="#b99a55"/>
+          <circle cx="20" cy="6" r="3" fill="#b99a55" stroke="none"/>
+        </svg>
+        <span></span>
+      </div>
+    </section>
+
+    <div id="app-view" hidden>
+      <section id="home-view">
+        <div id="home-menu-view">
+          <p class="home-menu-intro">Kerakli bo‘limni tanlang</p>
+          <div class="home-section-grid">
+            <button class="home-section-card" type="button" data-home-section="inactive" data-section-title="O‘zlashtirish">
+              <span class="home-section-number">01</span>
+              <span class="home-section-copy"><strong>O‘zlashtirish</strong><small>Hozircha faol emas</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="inactive" data-section-title="Davomat">
+              <span class="home-section-number">02</span>
+              <span class="home-section-copy"><strong>Davomat</strong><small>Hozircha faol emas</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="photo" data-section-title="Rektor stipendiyasi">
+              <span class="home-section-number">03</span>
+              <span class="home-section-copy"><strong>Rektor stipendiyasi</strong><small>Stipendiya ma’lumotlari</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="photo" data-section-title="Til sertifikatlari">
+              <span class="home-section-number">04</span>
+              <span class="home-section-copy"><strong>Til sertifikatlari</strong><small>Til darajasi va sertifikatlar</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="photo" data-section-title="Universitet tanlovlari">
+              <span class="home-section-number">05</span>
+              <span class="home-section-copy"><strong>Universitet tanlovlari</strong><small>Tanlov va natijalar</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="photo" data-section-title="Respublika va xalqaro yutuqlar">
+              <span class="home-section-number">06</span>
+              <span class="home-section-copy"><strong>Respublika va xalqaro yutuqlar</strong><small>Yutuq va ishtiroklar</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="placeholder" data-section-title="Volontyorlik">
+              <span class="home-section-number">07</span>
+              <span class="home-section-copy"><strong>Volontyorlik</strong><small>Ko‘ngillilik faoliyati</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="home-section-card" type="button" data-home-section="social" data-section-title="Ijtimoiy tarmoq faolligi">
+              <span class="home-section-number">08</span>
+              <span class="home-section-copy"><strong>Ijtimoiy tarmoq faolligi</strong><small>Instagram videosiga havolalar</small></span>
+              <span class="home-section-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </div>
+
+        <section id="home-placeholder-view" hidden aria-live="polite">
+          <button class="home-section-back" id="home-placeholder-back" type="button">← Bo‘limlar</button>
+          <div class="home-placeholder-card">
+            <span class="home-placeholder-icon" aria-hidden="true">✦</span>
+            <p id="home-placeholder-message">Bu bo‘limning ishlash tartibi keyinroq belgilanadi.</p>
+          </div>
+        </section>
+
+        <section id="photo-upload-view" hidden aria-label="Bo‘lim rasmi yuklash">
+          <button class="home-section-back" id="photo-upload-back" type="button">← Bo‘limlar</button>
+          <form id="photo-form">
+            <label for="photo">Rasm</label>
+            <input id="photo" type="file" accept="image/*" required>
+            <label for="photo-caption">Izoh</label>
+            <textarea id="photo-caption" maxlength="240" placeholder="Rasm haqida qisqacha izoh" required></textarea>
+            <button class="upload-button" type="submit">Rasmni yuklash</button>
+          </form>
+          <p class="upload-status" id="photo-upload-status" role="status" aria-live="polite" hidden></p>
+        </section>
+
+        <section id="social-activity-view" hidden aria-label="Ijtimoiy tarmoq faolligi">
+          <button class="home-section-back" id="social-activity-back" type="button">← Bo‘limlar</button>
+          <form id="video-form">
+            <label for="instagram">Instagram videosi havolasi</label>
+            <input id="instagram" type="url" placeholder="https://www.instagram.com/..." required>
+            <label for="video-caption">Izoh</label>
+            <textarea id="video-caption" maxlength="240" placeholder="Instagram videosi haqida qisqacha izoh" required></textarea>
+            <button class="upload-button" type="submit">Havolani yuklash</button>
+          </form>
+          <p class="upload-status" id="video-upload-status" role="status" aria-live="polite" hidden></p>
+        </section>
+      </section>
+
+      <section id="profile-view" hidden>
+        <div id="profile-main-view">
+          <div class="profile-card">
+            <h2>Ro‘yxatdan o‘tish ma’lumotlari</h2>
+            <dl class="profile-details">
+              <div><dt>Ism</dt><dd id="profile-first-name">—</dd></div>
+              <div><dt>Familiya</dt><dd id="profile-last-name">—</dd></div>
+              <div><dt>Guruh</dt><dd id="profile-group">—</dd></div>
+              <div><dt>Telefon raqami</dt><dd id="profile-phone">—</dd></div>
+            </dl>
+          </div>
+          <div class="profile-media-nav" aria-label="Yuklangan materiallar">
+            <button class="profile-media-nav-card" id="open-profile-photos" type="button">
+              <span class="profile-media-nav-text">
+                <strong>Yuklangan yutuqlar</strong>
+                <small>Barcha yutuqlarni ko‘rish</small>
+              </span>
+              <span class="profile-media-count" id="profile-photo-count">0</span>
+              <span class="profile-media-chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="profile-media-nav-card" id="open-profile-videos" type="button">
+              <span class="profile-media-nav-text">
+                <strong>Instagram videolari</strong>
+                <small>Barcha havolalarni ko‘rish</small>
+              </span>
+              <span class="profile-media-count" id="profile-video-count">0</span>
+              <span class="profile-media-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </div>
+
+        <section class="profile-media-page" id="profile-photos-page" hidden aria-label="Yuklangan yutuqlar">
+          <div class="profile-media-page-heading">
+            <button class="profile-back-button" id="photos-back" type="button">← Profil</button>
+          </div>
+          <div class="profile-photo-grid" id="profile-photo-grid"></div>
+          <p class="profile-empty" id="profile-photo-empty" hidden>Hozircha rasm yuklanmagan</p>
+        </section>
+
+        <section class="profile-media-page" id="profile-videos-page" hidden aria-label="Instagram videolari">
+          <div class="profile-media-page-heading">
+            <button class="profile-back-button" id="videos-back" type="button">← Profil</button>
+          </div>
+          <div class="profile-video-list" id="profile-video-list"></div>
+          <p class="profile-empty" id="profile-video-empty" hidden>Hozircha Instagram videosi yuklanmagan</p>
+        </section>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Pastki navigatsiya">
+        <button id="home-tab" type="button" aria-current="page">Asosiy</button>
+        <button id="profile-tab" type="button">Profil</button>
+      </nav>
+    </div>
+  </main>
+
+  <div class="welcome-overlay" id="welcome-modal" hidden role="dialog" aria-modal="true" aria-labelledby="welcome-heading">
+    <div class="welcome-card">
+      <p class="welcome-brand">Grant Academy</p>
+      <h2 class="welcome-heading" id="welcome-heading">Xush kelibsiz!</h2>
+      <p class="welcome-name" id="welcome-name"></p>
+      <button class="welcome-button" id="welcome-start" type="button">Boshlash</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    (() => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyASXLNGJaWRbmL2VUeTTub3qxQqfttQcR",
+        authDomain: "grand-academy-a7286.firebaseapp.com",
+        databaseURL: "https://grand-academy-a7286-default-rtdb.firebaseio.com/",
+        projectId: "grand-academy-a7286",
+        storageBucket: "grand-academy-a7286.firebasestorage.app",
+        messagingSenderId: "403319946045",
+        appId: "1:403319946045:web:e29dde92968c6a88fda354",
+        measurementId: "G-B6F4RDYMN9"
+      };
+      const photoStore = "rasmlar";
+      const videoStore = "video-havolalar";
+      const photoForm = document.getElementById("photo-form");
+      const videoForm = document.getElementById("video-form");
+      const registrationView = document.getElementById("registration-view");
+      const registrationForm = document.getElementById("registration-form");
+      const appView = document.getElementById("app-view");
+      const welcomeModal = document.getElementById("welcome-modal");
+      const welcomeName = document.getElementById("welcome-name");
+      const welcomeStartButton = document.getElementById("welcome-start");
+      const pageTitle = document.getElementById("page-title");
+      const loadingView = document.getElementById("loading-view");
+      const loadingSpinner = document.getElementById("loading-spinner");
+      const loadingMessage = document.getElementById("loading-message");
+      const loadingRetryButton = document.getElementById("loading-retry");
+      const homeView = document.getElementById("home-view");
+      const homeMenuView = document.getElementById("home-menu-view");
+      const homePlaceholderView = document.getElementById("home-placeholder-view");
+      const homePlaceholderMessage = document.getElementById("home-placeholder-message");
+      const photoUploadView = document.getElementById("photo-upload-view");
+      const socialActivityView = document.getElementById("social-activity-view");
+      const homePlaceholderBackButton = document.getElementById("home-placeholder-back");
+      const photoUploadBackButton = document.getElementById("photo-upload-back");
+      const socialActivityBackButton = document.getElementById("social-activity-back");
+      const profileView = document.getElementById("profile-view");
+      const profileMainView = document.getElementById("profile-main-view");
+      const profilePhotosPage = document.getElementById("profile-photos-page");
+      const profileVideosPage = document.getElementById("profile-videos-page");
+      const homeTab = document.getElementById("home-tab");
+      const profileTab = document.getElementById("profile-tab");
+      const openProfilePhotosButton = document.getElementById("open-profile-photos");
+      const openProfileVideosButton = document.getElementById("open-profile-videos");
+      const photosBackButton = document.getElementById("photos-back");
+      const videosBackButton = document.getElementById("videos-back");
+      const photoInput = document.getElementById("photo");
+      const photoCaptionInput = document.getElementById("photo-caption");
+      const instagramInput = document.getElementById("instagram");
+      const videoCaptionInput = document.getElementById("video-caption");
+      const accessCodeInput = document.getElementById("access-code");
+      const toggleAccessCodeButton = document.getElementById("toggle-access-code");
+      const photoUploadStatus = document.getElementById("photo-upload-status");
+      const videoUploadStatus = document.getElementById("video-upload-status");
+      const profilePhotoGrid = document.getElementById("profile-photo-grid");
+      const profileVideoList = document.getElementById("profile-video-list");
+      const profilePhotoCount = document.getElementById("profile-photo-count");
+      const profileVideoCount = document.getElementById("profile-video-count");
+      const profilePhotoEmpty = document.getElementById("profile-photo-empty");
+      const profileVideoEmpty = document.getElementById("profile-video-empty");
+      const accessCodeHash = "54edc9e939e3f0a0c6b55309b572522f0ea88efd18fd03277580e3a5d22fa492";
+      let activeSection = "home";
+      let activeHomePage = "menu";
+      let activeHomeTitle = "Talaba yutuqlari";
+      let activePhotoSection = "";
+      let activeProfilePage = "main";
+
+      function showStartupError(message, canRetry = false) {
+        loadingSpinner.hidden = true;
+        loadingMessage.textContent = message;
+        loadingRetryButton.hidden = !canRetry;
+      }
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+
+      if (firebaseConfig.apiKey === "YOUR_FIREBASE_API_KEY") {
+        showStartupError("Firebase sozlamalari kiritilmagan.");
+        window.alert("Firebase API kalitini firebaseConfig sozlamasiga kiriting.");
+        return;
+      }
+
+      const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      const telegramUserId = telegramUser?.id;
+      const telegramUserName = [
+        telegramUser?.first_name,
+        telegramUser?.last_name
+      ].filter(Boolean).join(" ") || "Foydalanuvchi";
+      if (!telegramUserId) {
+        showStartupError("Ilovani Telegram orqali oching.");
+        window.alert("Ilovani Telegram orqali oching");
+        return;
+      }
+
+      const database = getDatabase(initializeApp(firebaseConfig));
+      const userPath = `users/${telegramUserId}`;
+      let userData = {};
+      let receivedServerSnapshot = false;
+      let hasLoadedUserData = false;
+      let cachedRegistrationStatus = null;
+      let cachedWelcomeStatus = null;
+      let localCacheDatabasePromise;
+
+      function openLocalCacheDatabase() {
+        if (!window.indexedDB) return Promise.reject(new Error("IndexedDB is unavailable"));
+        if (!localCacheDatabasePromise) {
+          localCacheDatabasePromise = new Promise((resolve, reject) => {
+            const request = window.indexedDB.open("grant-academy-media-cache", 1);
+            request.onupgradeneeded = () => {
+              const localDatabase = request.result;
+              if (!localDatabase.objectStoreNames.contains("users")) {
+                localDatabase.createObjectStore("users", { keyPath: "telegramUserId" });
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => {
+              localCacheDatabasePromise = null;
+              reject(request.error || new Error("IndexedDB could not be opened"));
+            };
+            request.onblocked = () => {
+              localCacheDatabasePromise = null;
+              reject(new Error("IndexedDB is blocked"));
+            };
+          });
+        }
+        return localCacheDatabasePromise;
+      }
+
+      async function readCachedUserData() {
+        const localDatabase = await openLocalCacheDatabase();
+        return new Promise((resolve, reject) => {
+          const transaction = localDatabase.transaction("users", "readonly");
+          const request = transaction.objectStore("users").get(String(telegramUserId));
+          request.onsuccess = () => resolve(request.result ? request.result.data : null);
+          request.onerror = () => reject(request.error || new Error("IndexedDB cache read failed"));
+        });
+      }
+
+      async function writeCachedUserData(data) {
+        const localDatabase = await openLocalCacheDatabase();
+        const profile = data.profile || {};
+        const cachedData = {
+          registered: Boolean(
+            (profile.firstName && profile.lastName && profile.group && profile.phone) ||
+            (!receivedServerSnapshot && cachedRegistrationStatus === true)
+          ),
+          welcomeShown: data.welcomeShown === true,
+          [photoStore]: data[photoStore] || {},
+          [videoStore]: data[videoStore] || {}
+        };
+        return new Promise((resolve, reject) => {
+          const transaction = localDatabase.transaction("users", "readwrite");
+          transaction.objectStore("users").put({
+            telegramUserId: String(telegramUserId),
+            data: cachedData
+          });
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error || new Error("IndexedDB cache write failed"));
+          transaction.onabort = () => reject(transaction.error || new Error("IndexedDB cache write was aborted"));
+        });
+      }
+
+      function createId() {
+        return typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function saveItem(storeName, item) {
+        await set(ref(database, `${userPath}/${storeName}/${item.id}`), item);
+        userData[storeName] = { ...(userData[storeName] || {}), [item.id]: item };
+        try {
+          await writeCachedUserData(userData);
+        } catch {
+          // A local cache failure does not undo a successful Firebase save.
+        }
+      }
+
+      async function deleteItem(storeName, id) {
+        await remove(ref(database, `${userPath}/${storeName}/${id}`));
+        const items = { ...(userData[storeName] || {}) };
+        delete items[id];
+        userData[storeName] = items;
+        try {
+          await writeCachedUserData(userData);
+        } catch {
+          // Firebase remains the source of truth if local cache storage fails.
+        }
+      }
+
+      function showProfilePage(page) {
+        activeProfilePage = page;
+        profileMainView.hidden = page !== "main";
+        profilePhotosPage.hidden = page !== "photos";
+        profileVideosPage.hidden = page !== "videos";
+        pageTitle.textContent = page === "photos"
+          ? "Yuklangan yutuqlar"
+          : page === "videos" ? "Instagram videolari" : "Profil";
+      }
+
+      function showHomePage(page, title = "") {
+        activeHomePage = page;
+        activeHomeTitle = page === "menu"
+          ? "Talaba yutuqlari"
+          : page === "social" ? "Ijtimoiy tarmoq faolligi" : title;
+        homeMenuView.hidden = page !== "menu";
+        homePlaceholderView.hidden = page !== "placeholder" && page !== "inactive";
+        photoUploadView.hidden = page !== "photo";
+        socialActivityView.hidden = page !== "social";
+        homePlaceholderMessage.textContent = page === "inactive"
+          ? "Ushbu bo‘lim hozircha faol emas."
+          : "Bu bo‘limning ishlash tartibi keyinroq belgilanadi.";
+        pageTitle.textContent = activeHomeTitle;
+      }
+
+      function showSection(section) {
+        activeSection = section;
+        const isHome = section === "home";
+        homeView.hidden = !isHome;
+        profileView.hidden = isHome;
+        if (isHome) {
+          showHomePage("menu");
+          homeTab.setAttribute("aria-current", "page");
+          profileTab.removeAttribute("aria-current");
+        } else {
+          showProfilePage("main");
+          profileTab.setAttribute("aria-current", "page");
+          homeTab.removeAttribute("aria-current");
+        }
+      }
+
+      function renderProfile() {
+        const profile = userData.profile || {};
+        document.getElementById("profile-first-name").textContent = profile.firstName || "—";
+        document.getElementById("profile-last-name").textContent = profile.lastName || "—";
+        document.getElementById("profile-group").textContent = profile.group || "—";
+        document.getElementById("profile-phone").textContent = profile.phone || "—";
+      }
+
+      const uploadStatusTimers = new WeakMap();
+
+      function showUploadStatus(element, message, isSuccess) {
+        clearTimeout(uploadStatusTimers.get(element));
+        element.textContent = message;
+        element.classList.toggle("is-uploaded", isSuccess);
+        element.hidden = false;
+        uploadStatusTimers.set(element, setTimeout(() => {
+          element.hidden = true;
+          element.textContent = "";
+          element.classList.remove("is-uploaded");
+          uploadStatusTimers.delete(element);
+        }, 3000));
+      }
+
+      function formatUploadDate(timestamp) {
+        if (!timestamp || !Number.isFinite(Number(timestamp))) return "";
+        return new Intl.DateTimeFormat("uz-UZ", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hourCycle: "h23"
+        }).format(new Date(Number(timestamp)));
+      }
+
+      function createProfileActionButton(label, className = "") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `profile-action-button${className ? ` ${className}` : ""}`;
+        button.textContent = label;
+        return button;
+      }
+
+      function createDeleteButton(storeName, item, confirmationText) {
+        const button = createProfileActionButton("O‘chirish", "delete");
+        button.addEventListener("click", async () => {
+          if (!window.confirm(confirmationText)) return;
+          button.disabled = true;
+          try {
+            await deleteItem(storeName, item.id);
+          } catch {
+            window.alert("Ma’lumotni o‘chirib bo‘lmadi");
+            button.disabled = false;
+          }
+        });
+        return button;
+      }
+
+      function getInstagramUrl(value) {
+        try {
+          const url = new URL(value.trim());
+          if (url.protocol === "https:" &&
+              (url.hostname === "instagram.com" || url.hostname.endsWith(".instagram.com"))) {
+            return url.href;
+          }
+        } catch {
+          return null;
+        }
+        return null;
+      }
+
+      function renderProfileMedia() {
+        profilePhotoGrid.replaceChildren();
+        profileVideoList.replaceChildren();
+
+        const photos = Object.values(userData[photoStore] || {})
+          .filter((item) => item && item.photo)
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const videos = Object.values(userData[videoStore] || {})
+          .filter((item) => item && item.instagram)
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        profilePhotoCount.textContent = String(photos.length);
+        profileVideoCount.textContent = String(videos.length);
+        profilePhotoEmpty.hidden = photos.length > 0;
+        profileVideoEmpty.hidden = videos.length > 0;
+
+        photos.forEach((item, index) => {
+          const card = document.createElement("article");
+          card.className = "profile-photo-card";
+          const image = document.createElement("img");
+          image.src = item.photo;
+          image.alt = item.caption || `Rasm ${index + 1}`;
+          image.loading = "lazy";
+          const meta = document.createElement("div");
+          meta.className = "profile-photo-meta";
+          const title = document.createElement("strong");
+          title.textContent = item.caption || `Rasm ${index + 1}`;
+          meta.append(title);
+          const source = document.createElement("span");
+          source.className = "profile-media-source";
+          source.textContent = item.section ? `Bo‘lim: ${item.section}` : "Bo‘limi ko‘rsatilmagan";
+          meta.append(source);
+          const dateText = formatUploadDate(item.createdAt);
+          if (dateText) {
+            const date = document.createElement("time");
+            date.className = "profile-media-date";
+            date.textContent = dateText;
+            meta.append(date);
+          }
+          const actions = document.createElement("div");
+          actions.className = "profile-media-actions";
+          const editButton = createProfileActionButton("Tahrirlash");
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.accept = "image/*";
+          fileInput.hidden = true;
+          editButton.addEventListener("click", () => fileInput.click());
+          fileInput.addEventListener("change", async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+              window.alert("Rasm faylini tanlang");
+              fileInput.value = "";
+              return;
+            }
+            editButton.disabled = true;
+            try {
+              await saveItem(photoStore, {
+                ...item,
+                photo: await fileToBase64(file),
+                updatedAt: Date.now()
+              });
+            } catch {
+              window.alert("Rasmni yangilab bo‘lmadi");
+            } finally {
+              editButton.disabled = false;
+              fileInput.value = "";
+            }
+          });
+          actions.append(editButton, createDeleteButton(photoStore, item, "Yutuq rasmini o‘chirmoqchimisiz?"), fileInput);
+          card.append(image, meta, actions);
+          profilePhotoGrid.append(card);
+        });
+
+        videos.forEach((item) => {
+          const card = document.createElement("article");
+          card.className = "profile-video-card";
+          const icon = document.createElement("span");
+          icon.className = "profile-video-icon";
+          icon.setAttribute("aria-hidden", "true");
+          icon.textContent = "▶";
+          const info = document.createElement("div");
+          info.className = "profile-video-info";
+          if (item.caption) {
+            const caption = document.createElement("p");
+            caption.className = "profile-media-caption";
+            caption.textContent = item.caption;
+            info.append(caption);
+          }
+          const link = document.createElement("a");
+          link.href = item.instagram;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Instagram videosini ochish";
+          info.append(link);
+          const dateText = formatUploadDate(item.createdAt);
+          if (dateText) {
+            const date = document.createElement("time");
+            date.className = "profile-media-date";
+            date.textContent = dateText;
+            info.append(date);
+          }
+
+          const main = document.createElement("div");
+          main.className = "profile-video-main";
+          main.append(icon, info);
+          const actions = document.createElement("div");
+          actions.className = "profile-media-actions";
+          const editButton = createProfileActionButton("Tahrirlash");
+          const editForm = document.createElement("form");
+          editForm.className = "profile-edit-form";
+          editForm.hidden = true;
+          const editInput = document.createElement("input");
+          editInput.type = "url";
+          editInput.value = item.instagram;
+          editInput.placeholder = "https://www.instagram.com/...";
+          editInput.required = true;
+          const editActions = document.createElement("div");
+          editActions.className = "profile-edit-buttons";
+          const saveButton = createProfileActionButton("Saqlash");
+          saveButton.type = "submit";
+          const cancelButton = createProfileActionButton("Bekor qilish");
+          cancelButton.addEventListener("click", () => {
+            editInput.value = item.instagram;
+            editInput.setCustomValidity("");
+            editForm.hidden = true;
+          });
+          editActions.append(saveButton, cancelButton);
+          editForm.append(editInput, editActions);
+          editButton.addEventListener("click", () => {
+            editForm.hidden = !editForm.hidden;
+            if (!editForm.hidden) editInput.focus();
+          });
+          editInput.addEventListener("input", () => editInput.setCustomValidity(""));
+          editForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!editForm.reportValidity()) return;
+            const instagram = getInstagramUrl(editInput.value);
+            if (!instagram) {
+              editInput.setCustomValidity("Instagram havolasini kiriting");
+              editInput.reportValidity();
+              return;
+            }
+            saveButton.disabled = true;
+            try {
+              await saveItem(videoStore, {
+                ...item,
+                instagram,
+                updatedAt: Date.now()
+              });
+              editForm.hidden = true;
+            } catch {
+              window.alert("Havolani yangilab bo‘lmadi");
+            } finally {
+              saveButton.disabled = false;
+            }
+          });
+          actions.append(editButton, createDeleteButton(videoStore, item, "Instagram havolasini o‘chirmoqchimisiz?"));
+          card.append(main, actions, editForm);
+          profileVideoList.append(card);
+        });
+      }
+
+      function updateAppFromUserData() {
+        if (!receivedServerSnapshot && cachedWelcomeStatus !== true) return;
+
+        if (receivedServerSnapshot && userData.welcomeShown !== true) {
+          hasLoadedUserData = true;
+          loadingView.hidden = true;
+          loadingRetryButton.hidden = true;
+          registrationView.hidden = true;
+          appView.hidden = true;
+          pageTitle.textContent = "Grant Academy";
+          welcomeName.textContent = telegramUserName;
+          welcomeModal.hidden = false;
+          welcomeStartButton.focus({ preventScroll: true });
+          return;
+        }
+
+        welcomeModal.hidden = true;
+        const profile = userData.profile;
+        const hasProfile = Boolean(
+          profile && profile.firstName && profile.lastName && profile.group && profile.phone
+        );
+        const isRegistered = hasProfile || (!receivedServerSnapshot && cachedRegistrationStatus === true);
+        hasLoadedUserData = true;
+        loadingView.hidden = true;
+        loadingRetryButton.hidden = true;
+        pageTitle.hidden = false;
+        registrationView.hidden = isRegistered;
+        appView.hidden = !isRegistered;
+        pageTitle.textContent = isRegistered
+          ? (activeSection === "home"
+            ? activeHomeTitle
+            : activeProfilePage === "photos"
+              ? "Yuklangan yutuqlar"
+              : activeProfilePage === "videos" ? "Instagram videolari" : "Profil")
+          : "Ro‘yxatdan o‘tish";
+        if (isRegistered) {
+          if (hasProfile) {
+            renderProfile();
+          }
+          renderProfileMedia();
+        }
+      }
+
+      async function restoreLocalCache() {
+        try {
+          const cachedUserData = await readCachedUserData();
+          if (cachedUserData && !receivedServerSnapshot) {
+            cachedRegistrationStatus = Boolean(cachedUserData.registered);
+            cachedWelcomeStatus = cachedUserData.welcomeShown === true;
+            userData = {
+              welcomeShown: cachedWelcomeStatus,
+              [photoStore]: cachedUserData[photoStore] || {},
+              [videoStore]: cachedUserData[videoStore] || {}
+            };
+            updateAppFromUserData();
+          }
+        } catch {
+          // Firebase remains available if local IndexedDB is unavailable.
+        }
+      }
+
+      homeTab.addEventListener("click", () => showSection("home"));
+      welcomeStartButton.addEventListener("click", async () => {
+        welcomeStartButton.disabled = true;
+        const originalButtonText = welcomeStartButton.textContent;
+        welcomeStartButton.textContent = "Saqlanmoqda...";
+        try {
+          await set(ref(database, `${userPath}/welcomeShown`), true);
+          userData = { ...userData, welcomeShown: true };
+          cachedWelcomeStatus = true;
+          welcomeModal.hidden = true;
+          updateAppFromUserData();
+          writeCachedUserData(userData).catch(() => {});
+        } catch {
+          window.alert("Davom etib bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring.");
+        } finally {
+          welcomeStartButton.disabled = false;
+          welcomeStartButton.textContent = originalButtonText;
+        }
+      });
+      document.querySelectorAll(".home-section-card").forEach((button) => {
+        button.addEventListener("click", () => {
+          const title = button.dataset.sectionTitle || "";
+          if (button.dataset.homeSection === "social") {
+            showHomePage("social");
+          } else if (button.dataset.homeSection === "photo") {
+            activePhotoSection = title;
+            showHomePage("photo", title);
+          } else if (button.dataset.homeSection === "inactive") {
+            showHomePage("inactive", title);
+          } else {
+            showHomePage("placeholder", title);
+          }
+        });
+      });
+      homePlaceholderBackButton.addEventListener("click", () => showHomePage("menu"));
+      photoUploadBackButton.addEventListener("click", () => showHomePage("menu"));
+      socialActivityBackButton.addEventListener("click", () => showHomePage("menu"));
+      loadingRetryButton.addEventListener("click", () => window.location.reload());
+      profileTab.addEventListener("click", () => {
+        renderProfile();
+        renderProfileMedia();
+        showSection("profile");
+      });
+      openProfilePhotosButton.addEventListener("click", () => {
+        renderProfileMedia();
+        showProfilePage("photos");
+      });
+      openProfileVideosButton.addEventListener("click", () => {
+        renderProfileMedia();
+        showProfilePage("videos");
+      });
+      photosBackButton.addEventListener("click", () => showProfilePage("main"));
+      videosBackButton.addEventListener("click", () => showProfilePage("main"));
+
+      async function isAccessCodeValid(value) {
+        const bytes = new TextEncoder().encode(value.trim());
+        const digest = await crypto.subtle.digest("SHA-256", bytes);
+        const hash = Array.from(new Uint8Array(digest), (byte) =>
+          byte.toString(16).padStart(2, "0")
+        ).join("");
+        return hash === accessCodeHash;
+      }
+
+      registrationForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!registrationForm.reportValidity()) return;
+        accessCodeInput.setCustomValidity("");
+
+        const button = registrationForm.querySelector("button");
+        button.disabled = true;
+        try {
+          if (!crypto.subtle) throw new Error("Secure code verification is unavailable");
+          const validCode = await isAccessCodeValid(accessCodeInput.value);
+          if (!validCode) {
+            accessCodeInput.setCustomValidity("Maxfiy kod noto‘g‘ri");
+            accessCodeInput.reportValidity();
+            return;
+          }
+
+          await set(ref(database, `${userPath}/profile`), {
+            firstName: document.getElementById("first-name").value.trim(),
+            lastName: document.getElementById("last-name").value.trim(),
+            group: document.getElementById("student-group").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            registeredAt: Date.now()
+          });
+          registrationForm.reset();
+        } catch {
+          window.alert("Ro‘yxatdan o‘tib bo‘lmadi. Internet aloqasi va Firebase qoidalarini tekshiring");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      accessCodeInput.addEventListener("input", () => accessCodeInput.setCustomValidity(""));
+      toggleAccessCodeButton.addEventListener("click", () => {
+        const showAccessCode = accessCodeInput.type === "password";
+        accessCodeInput.type = showAccessCode ? "text" : "password";
+        toggleAccessCodeButton.setAttribute("aria-pressed", String(showAccessCode));
+        toggleAccessCodeButton.setAttribute(
+          "aria-label",
+          showAccessCode ? "Maxfiy so‘zni yashirish" : "Maxfiy so‘zni ko‘rsatish"
+        );
+      });
+
+      photoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!photoForm.reportValidity()) return;
+        const caption = photoCaptionInput.value.trim();
+        if (!caption) {
+          photoCaptionInput.setCustomValidity("Izoh kiriting");
+          photoCaptionInput.reportValidity();
+          return;
+        }
+        photoCaptionInput.setCustomValidity("");
+        const photo = photoInput.files[0];
+        if (!photo || !photo.type.startsWith("image/")) return;
+
+        const button = photoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(photoStore, {
+            id: createId(),
+            photo: await fileToBase64(photo),
+            caption,
+            section: activePhotoSection,
+            createdAt: Date.now()
+          });
+          showUploadStatus(photoUploadStatus, "Rasm yuklandi", true);
+          photoForm.reset();
+        } catch {
+          showUploadStatus(photoUploadStatus, "Rasm yuklanmadi", false);
+          window.alert("Rasmni Firebase bazasiga saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      videoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!videoForm.reportValidity()) return;
+        const caption = videoCaptionInput.value.trim();
+        if (!caption) {
+          videoCaptionInput.setCustomValidity("Izoh kiriting");
+          videoCaptionInput.reportValidity();
+          return;
+        }
+        videoCaptionInput.setCustomValidity("");
+
+        let instagram;
+        try {
+          instagram = new URL(instagramInput.value.trim());
+        } catch {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+        instagramInput.setCustomValidity("");
+        if (instagram.protocol !== "https:" ||
+            !(instagram.hostname === "instagram.com" || instagram.hostname.endsWith(".instagram.com"))) {
+          instagramInput.setCustomValidity("Instagram havolasini kiriting");
+          instagramInput.reportValidity();
+          return;
+        }
+
+        const button = videoForm.querySelector("button");
+        button.disabled = true;
+        try {
+          await saveItem(videoStore, {
+            id: createId(),
+            instagram: instagram.href,
+            caption,
+            createdAt: Date.now()
+          });
+          showUploadStatus(videoUploadStatus, "Havola yuklandi", true);
+          videoForm.reset();
+        } catch {
+          showUploadStatus(videoUploadStatus, "Havola yuklanmadi", false);
+          window.alert("Havolani Firebase bazasiga saqlab bo‘lmadi");
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      instagramInput.addEventListener("input", () => instagramInput.setCustomValidity(""));
+      photoCaptionInput.addEventListener("input", () => photoCaptionInput.setCustomValidity(""));
+      videoCaptionInput.addEventListener("input", () => videoCaptionInput.setCustomValidity(""));
+
+      restoreLocalCache();
+      onValue(
+        ref(database, userPath),
+        (snapshot) => {
+          receivedServerSnapshot = true;
+          cachedRegistrationStatus = null;
+          userData = snapshot.val() || {};
+          writeCachedUserData(userData).catch(() => {});
+          updateAppFromUserData();
+        },
+        () => {
+          if (hasLoadedUserData) {
+            window.alert("Firebase bazasiga ulanib bo‘lmadi. URL manzili va xavfsizlik qoidalarini tekshiring.");
+            return;
+          }
+          showStartupError("Ma’lumotlarni yuklab bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring.", true);
+        }
+      );
+    })();
+  </script>
+</body>
+</html>
