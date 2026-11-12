@@ -5156,9 +5156,9 @@
               DOCX hisobotini tayyorlash
             </button>
           </div>
-          <a class="observer-admin-report-button observer-admin-report-save" id="observer-admin-report-save" href="#" download hidden>
-            DOCX faylini yuklab olish
-          </a>
+          <button class="observer-admin-report-button observer-admin-report-save" id="observer-admin-report-send" type="button" hidden disabled>
+            DOCX faylini Telegram orqali yuborish
+          </button>
           <p class="observer-admin-report-status" id="observer-admin-report-status" role="status" aria-live="polite" hidden></p>
         </div>
         <p class="profile-empty" id="observer-admin-status" role="status" aria-live="polite">Ma’lumotlar yuklanmoqda…</p>
@@ -5366,10 +5366,11 @@
       const observerAdminReportStartDate = document.getElementById("observer-admin-report-start");
       const observerAdminReportEndDate = document.getElementById("observer-admin-report-end");
       const observerAdminReportDownloadButton = document.getElementById("observer-admin-report-download");
-      const observerAdminReportSaveLink = document.getElementById("observer-admin-report-save");
+      const observerAdminReportSendButton = document.getElementById("observer-admin-report-send");
       const observerAdminReportStatus = document.getElementById("observer-admin-report-status");
       let observerAdminDocxModulePromise = null;
-      let observerAdminReportObjectUrl = "";
+      let observerAdminReportBlob = null;
+      let observerAdminReportFileName = "";
       const observerAdminReportToday = new Date();
       const formatObserverAdminReportDateInput = (date) =>
         `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -9376,7 +9377,7 @@
         }).format(new Date(year, month - 1, day));
       }
 
-      async function downloadObserverAdminReportDocx(reportData, startValue, endValue) {
+      async function createObserverAdminReportDocx(reportData, startValue, endValue) {
         if (!observerAdminDocxModulePromise) {
           observerAdminDocxModulePromise = import("https://esm.sh/docx@9.5.1")
             .catch((error) => {
@@ -9562,9 +9563,66 @@
         });
         const blob = await docx.Packer.toBlob(documentFile);
         return {
-          url: URL.createObjectURL(blob),
-          fileName: `grant-academy-hisobot-${startValue}-${endValue}.docx`
+          blob,
+          fileName: "grant-academy-hisobot-" + startValue + "-" + endValue + ".docx"
         };
+      }
+
+      async function sendObserverAdminReportToTelegram() {
+        if (!isReadOnlyAdmin) return;
+        if (!observerAdminReportBlob) {
+          setObserverAdminReportStatus("Avval DOCX hisobotini tayyorlang.", true);
+          return;
+        }
+        const initData = String(window.Telegram?.WebApp?.initData || "");
+        if (!initData) {
+          setObserverAdminReportStatus("Ilovani Telegram ichidan ochib, qayta urinib ko‘ring.", true);
+          return;
+        }
+
+        observerAdminReportSendButton.disabled = true;
+        observerAdminReportSendButton.textContent = "Telegram botga yuborilmoqda…";
+        setObserverAdminReportStatus("DOCX tasdiqlangan admin akkauntiga yuborilmoqda…");
+        let sent = false;
+        try {
+          const response = await fetch("/api/send-report", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "X-Telegram-Init-Data": initData,
+              "X-Report-Filename": observerAdminReportFileName
+            },
+            body: observerAdminReportBlob
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const messages = {
+              BOT_NOT_CONFIGURED: "Serverda bot token sozlanmagan. Vercel’da TELEGRAM_BOT_TOKEN maxfiy o‘zgaruvchisini qo‘shish kerak.",
+              INVALID_INIT_DATA: "Telegram sessiyasini tasdiqlab bo‘lmadi. Ilovani yopib, Telegram’dan qayta oching.",
+              NOT_ALLOWED: "Bu Telegram akkauntida hisobot yuborish ruxsati yo‘q.",
+              BOT_CHAT_UNAVAILABLE: "Bot sizga xabar yubora olmadi. Bot chatini ochib /start bosing, keyin qayta urinib ko‘ring.",
+              REPORT_TOO_LARGE: "Hisobot fayli server uchun juda katta.",
+              TELEGRAM_SEND_FAILED: "Telegram bot faylni yubora olmadi. Bot sozlamalarini tekshiring."
+            };
+            const message = messages[result.code] || (response.status === 404
+              ? "Yuborish serveri hali joylanmagan. Vercel deploy tugagach qayta urinib ko‘ring."
+              : "DOCX botga yuborilmadi. Internet yoki bot sozlamalarini tekshiring.");
+            throw new Error(message);
+          }
+          sent = true;
+          observerAdminReportSendButton.textContent = "Telegramga yuborildi ✓";
+          setObserverAdminReportStatus("DOCX bot orqali aynan hozirgi tasdiqlangan admin akkauntiga yuborildi. Telegram chatni tekshiring.");
+        } catch (error) {
+          setObserverAdminReportStatus(
+            error instanceof Error ? error.message : "DOCX botga yuborilmadi. Qayta urinib ko‘ring.",
+            true
+          );
+        } finally {
+          if (!sent) {
+            observerAdminReportSendButton.disabled = false;
+            observerAdminReportSendButton.textContent = "DOCX faylini Telegram orqali yuborish";
+          }
+        }
       }
 
       async function generateObserverAdminReport() {
@@ -9575,45 +9633,39 @@
           setObserverAdminReportStatus("Hisobot sanalarini tanlang.", true);
           return;
         }
-        const startDate = new Date(`${startValue}T00:00:00`);
-        const endDate = new Date(`${endValue}T23:59:59.999`);
+        const startDate = new Date(startValue + "T00:00:00");
+        const endDate = new Date(endValue + "T23:59:59.999");
         const startTime = startDate.getTime();
         const endTime = endDate.getTime();
-        if (
-          !Number.isFinite(startTime) ||
-          !Number.isFinite(endTime) ||
-          startTime > endTime
-        ) {
+        if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || startTime > endTime) {
           setObserverAdminReportStatus("Sanalar oralig‘ini to‘g‘ri tanlang.", true);
           return;
         }
 
         observerAdminReportDownloadButton.disabled = true;
         observerAdminReportDownloadButton.textContent = "Hisobot tayyorlanmoqda…";
-        observerAdminReportSaveLink.hidden = true;
-        observerAdminReportSaveLink.removeAttribute("href");
-        observerAdminReportSaveLink.removeAttribute("download");
-        if (observerAdminReportObjectUrl) {
-          URL.revokeObjectURL(observerAdminReportObjectUrl);
-          observerAdminReportObjectUrl = "";
-        }
+        observerAdminReportSendButton.hidden = true;
+        observerAdminReportSendButton.disabled = true;
+        observerAdminReportSendButton.textContent = "DOCX faylini Telegram orqali yuborish";
+        observerAdminReportBlob = null;
+        observerAdminReportFileName = "";
         setObserverAdminReportStatus("Foydalanuvchi ma’lumotlari tayyorlanmoqda…");
         let reportStage = "Firebase ma’lumotlarini o‘qish";
         try {
           const reportData = await collectObserverAdminReportRows(startTime, endTime);
           reportStage = "DOCX faylini yaratish";
           setObserverAdminReportStatus("DOCX fayl yaratilmoqda…");
-          const reportFile = await downloadObserverAdminReportDocx(
+          const reportFile = await createObserverAdminReportDocx(
             reportData,
             startValue,
             endValue
           );
-          observerAdminReportObjectUrl = reportFile.url;
-          observerAdminReportSaveLink.href = reportFile.url;
-          observerAdminReportSaveLink.download = reportFile.fileName;
-          observerAdminReportSaveLink.hidden = false;
+          observerAdminReportBlob = reportFile.blob;
+          observerAdminReportFileName = reportFile.fileName;
+          observerAdminReportSendButton.disabled = false;
+          observerAdminReportSendButton.hidden = false;
           setObserverAdminReportStatus(
-            "DOCX tayyor. Yuklab olish uchun quyidagi tugmani bosing."
+            "DOCX tayyor. Uni bot orqali admin Telegram akkauntiga yuborish uchun tugmani bosing."
           );
         } catch (error) {
           console.error("Hisobot yaratishda xatolik:", error);
@@ -9623,7 +9675,7 @@
           setObserverAdminReportStatus(
             permissionDenied
               ? "Firebase hisobot ma’lumotlarini o‘qishga ruxsat bermadi. Database Rules’da admin uchun o‘qish ruxsatini tekshiring."
-              : `${reportStage} bosqichida xatolik yuz berdi. Internetni tekshirib, qayta urinib ko‘ring.`,
+              : reportStage + " bosqichida xatolik yuz berdi. Internetni tekshirib, qayta urinib ko‘ring.",
             true
           );
         } finally {
@@ -12267,6 +12319,7 @@
       observerAdminRefreshButton.addEventListener("click", () => loadObserverAdminData(true));
       observerAdminUserBackButton.addEventListener("click", closeObserverAdminUser);
       observerAdminReportDownloadButton.addEventListener("click", generateObserverAdminReport);
+      observerAdminReportSendButton.addEventListener("click", sendObserverAdminReportToTelegram);
       achievementSectionAdminRefreshButton.addEventListener(
         "click",
         () => loadAchievementSectionAdminOverview(true)
